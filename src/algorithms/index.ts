@@ -1,5 +1,6 @@
 import { generateBFSSteps } from './bfs';
 import { generateDFSSteps } from './dfs';
+import { generateDijkstraSteps } from './dijkstra';
 import type { AlgorithmDefinition, AlgorithmId } from './types';
 
 /**
@@ -54,9 +55,17 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
     label: 'Dijkstra',
     summary: 'Shortest paths from one node in a graph with non-negative weights.',
     complexity: 'O((V + E) log V)',
-    comingSoon: true,
-    generateSteps: null,
-    legend: [],
+    comingSoon: false,
+    generateSteps: generateDijkstraSteps,
+    legend: [
+      { kind: 'node', status: 'current', label: 'Current node' },
+      { kind: 'node', status: 'queued', label: 'Known distance' },
+      { kind: 'node', status: 'visited', label: 'Settled' },
+      { kind: 'node', status: 'default', label: 'No known distance' },
+      { kind: 'edge', status: 'active', label: 'Improving path' },
+      { kind: 'edge', status: 'settled', label: 'Shortest-path tree' },
+      { kind: 'edge', status: 'skipped', label: 'No improvement' },
+    ],
   },
   {
     id: 'topo-sort',
