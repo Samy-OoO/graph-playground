@@ -1,0 +1,110 @@
+/* Design tokens, reset and global behaviour. Component styles live in *.module.css next to each component. */
+
+:root {
+  color-scheme: dark;
+
+  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Surfaces and text */
+  --bg: #0b1020;
+  --surface: #111827;
+  --surface-raised: #1f2937;
+  --surface-hover: #293548;
+  --border: #263247;
+  --border-strong: #374151;
+  --text: #e5e7eb;
+  --text-soft: #cbd5e1;
+  --text-muted: #9ca3af;
+
+  /* Interactive */
+  --accent: #3b82f6;
+  --accent-strong: #1d4ed8;
+  --accent-text: #93c5fd;
+  --danger-text: #fca5a5;
+  --warning: #fbbf24;
+
+  /* The one loud colour: the active path of a running algorithm */
+  --neon: #00c8ff;
+  --neon-glow: rgba(0, 200, 255, 0.55);
+
+  /* Node states */
+  --node-default-fill: #1d4ed8;
+  --node-default-stroke: #60a5fa;
+  --node-queued-fill: #223152;
+  --node-queued-stroke: #60a5fa;
+  --node-onpath-fill: #0e2a4d;
+  --node-current-fill: #f59e0b;
+  --node-current-stroke: #fcd34d;
+  --node-current-text: #1c1100;
+  --node-visited-fill: #16a34a;
+  --node-visited-stroke: #4ade80;
+  --node-selected-fill: #0f766e;
+  --node-selected-stroke: #5eead4;
+  --node-edge-source-fill: #d97706;
+
+  /* Edge states */
+  --edge-default: #6489bf;
+  --edge-active: var(--neon);
+  --edge-settled: #22c55e;
+  --edge-skipped: #fb923c;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

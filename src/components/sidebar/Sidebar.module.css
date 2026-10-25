@@ -1,0 +1,16 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  padding-right: 2px; /* keeps card borders clear of the scrollbar */
+}
+
+@media (max-width: 1000px) {
+  .sidebar {
+    max-height: none;
+    overflow: visible;
+  }
+}

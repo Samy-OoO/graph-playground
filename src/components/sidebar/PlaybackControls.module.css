@@ -1,0 +1,36 @@
+.controls {
+  display: grid;
+  gap: 14px;
+}
+
+.progress,
+.speed {
+  display: grid;
+  gap: 6px;
+}
+
+.progress label,
+.speed label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.progress input,
+.speed input {
+  width: 100%;
+  accent-color: var(--neon);
+  cursor: pointer;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.speedLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}

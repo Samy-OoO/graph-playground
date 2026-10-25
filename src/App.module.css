@@ -1,0 +1,36 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .workspace {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  /* The controls move underneath and span the full width. */
+  .workspace > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 650px) {
+  .app {
+    padding: 16px;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

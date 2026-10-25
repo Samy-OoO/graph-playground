@@ -1,0 +1,33 @@
+.body {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.select {
+  width: 100%;
+  padding: 9px;
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.select:disabled {
+  opacity: 0.5;
+}
+
+.hint {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

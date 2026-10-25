@@ -1,0 +1,42 @@
+.panel {
+  min-width: 0;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.counts {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.footer {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.caption {
+  min-height: 2.8em; /* reserve two lines so the canvas doesn't jump between messages */
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.caption[data-running='true'] {
+  color: var(--text);
+}

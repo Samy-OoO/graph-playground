@@ -1,0 +1,66 @@
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Node swatches */
+.nodeSwatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--node-default-stroke);
+  background: var(--node-default-fill);
+}
+
+.nodeSwatch[data-status='queued'] {
+  background: var(--node-queued-fill);
+  border-color: var(--node-queued-stroke);
+}
+
+.nodeSwatch[data-status='onPath'] {
+  background: var(--node-onpath-fill);
+  border-color: var(--neon);
+  box-shadow: 0 0 6px var(--neon-glow);
+}
+
+.nodeSwatch[data-status='current'] {
+  background: var(--node-current-fill);
+  border-color: var(--node-current-stroke);
+}
+
+.nodeSwatch[data-status='visited'] {
+  background: var(--node-visited-fill);
+  border-color: var(--node-visited-stroke);
+}
+
+/* Edge swatches */
+.edgeSwatch {
+  width: 22px;
+  height: 0;
+  border-top: 2px solid var(--edge-default);
+}
+
+.edgeSwatch[data-status='active'] {
+  border-top: 3px solid var(--edge-active);
+  box-shadow: 0 0 6px var(--neon-glow);
+}
+
+.edgeSwatch[data-status='settled'] {
+  border-top: 3px solid var(--edge-settled);
+}
+
+.edgeSwatch[data-status='skipped'] {
+  border-top: 2px dashed var(--edge-skipped);
+}
