@@ -1,6 +1,6 @@
 import type { GraphData } from '../types/graph';
 
-export type AlgorithmId = 'none' | 'bfs' | 'dfs' | 'dijkstra' | 'topo-sort';
+export type AlgorithmId = 'none' | 'bfs' | 'dfs' | 'dijkstra' | 'prim' | 'topo-sort';
 
 /**
  * How a node should look in a given step.
@@ -56,6 +56,7 @@ export interface AlgorithmDefinition {
   complexity: string;
   /** Listed in the picker but not built yet. */
   comingSoon: boolean;
+  randomStart?: boolean;
   generateSteps: ((graph: GraphData, startNodeId: string) => AlgorithmStep[]) | null;
   legend: LegendItem[];
 }

@@ -143,10 +143,7 @@ export function generateDijkstraSteps(graph: GraphData, startNodeId: string) : A
                 previousEdge.set(nei.nodeId, nei.edgeId);
 
                 // Insert the improved distance. Older entries become stale automatically.
-                minHeap.enqueue({
-                    nodeId: nei.nodeId,
-                    distance: candidateDistance,
-                });
+                minHeap.enqueue({ nodeId: nei.nodeId, distance: candidateDistance, });
 
                 record(
                     `Relax ${labelOf(cur)} ${arrow} ${labelOf(nei.nodeId)}: ` + 

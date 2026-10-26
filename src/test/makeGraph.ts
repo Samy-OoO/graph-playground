@@ -11,8 +11,9 @@ export function makeGraph(labels: string, edges: string[], options: { directed?:
     weighted: options.weighted ?? false,
     nodes: [...labels].map((label, index) => ({ id: label, label, x: 100 + index * 80, y: 200 })),
     edges: edges.map((edge) => {
-      const [source, destination] = edge.split('>');
-      return { id: edge, source, destination };
+      const [pair, weight] = edge.split(':');
+      const [source, destination] = pair.split('>');
+      return weight === undefined ? { id: pair, source, destination } : { id: pair, source, destination, weight: Number(weight) };
     }),
   };
 }

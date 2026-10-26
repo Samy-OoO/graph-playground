@@ -27,7 +27,7 @@ export function useAlgorithm(graph: GraphApi) {
 
   // The chosen start node may have been deleted since it was picked.
   const validStartNodeId = graph.nodes.some((node) => node.id === startNodeId) ? startNodeId : '';
-  const canRun = definition.generateSteps !== null && validStartNodeId !== '';
+  const canRun = definition.generateSteps !== null && (definition.randomStart ? graph.nodes.length > 0 : validStartNodeId !== '');
 
   function select(id: AlgorithmId) {
     setSelectedId(id);
@@ -37,8 +37,13 @@ export function useAlgorithm(graph: GraphApi) {
   }
 
   function run() {
-    if (!definition.generateSteps || !validStartNodeId) return;
-    player.load(definition.generateSteps(graph.data, validStartNodeId));
+    if (!definition.generateSteps) return;
+
+    const randomNode = graph.nodes[Math.floor(Math.random() * graph.nodes.length)];
+    const runStartNodeId = definition.randomStart ? randomNode?.id : validStartNodeId;
+    if (!runStartNodeId) return;
+
+    player.load(definition.generateSteps(graph.data, runStartNodeId));
     setRunVersion(graph.version);
     setWasInvalidated(false);
   }

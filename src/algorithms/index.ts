@@ -1,6 +1,7 @@
 import { generateBFSSteps } from './bfs';
 import { generateDFSSteps } from './dfs';
 import { generateDijkstraSteps } from './dijkstra';
+import { generatePrimSteps } from './prim';
 import type { AlgorithmDefinition, AlgorithmId } from './types';
 
 /**
@@ -65,6 +66,24 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
       { kind: 'edge', status: 'active', label: 'Improving path' },
       { kind: 'edge', status: 'settled', label: 'Shortest-path tree' },
       { kind: 'edge', status: 'skipped', label: 'No improvement' },
+    ],
+  },
+  {
+    id: 'prim',
+    label: "Prim",
+    summary: 'Grows a minimum spanning tree from a random node by always taking the cheapest edge that reaches a new node.',
+    complexity: 'O(E log V)',
+    comingSoon: false,
+    randomStart: true,
+    generateSteps: generatePrimSteps,
+    legend: [
+      { kind: 'node', status: 'current', label: 'Newly added' },
+      { kind: 'node', status: 'queued', label: 'Reachable by a queued edge' },
+      { kind: 'node', status: 'visited', label: 'In the tree' },
+      { kind: 'node', status: 'default', label: 'Not reached yet' },
+      { kind: 'edge', status: 'active', label: 'Being queued / taken' },
+      { kind: 'edge', status: 'settled', label: 'Tree edge' },
+      { kind: 'edge', status: 'skipped', label: 'Skipped (would form a cycle)' },
     ],
   },
   {
