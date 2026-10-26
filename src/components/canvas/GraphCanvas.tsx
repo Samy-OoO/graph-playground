@@ -92,6 +92,7 @@ export function GraphCanvas({ graph, editor, step }: GraphCanvasProps) {
             edge={edge}
             geometry={geometry}
             status={status}
+            dimmed={step !== null && status === 'default'}
             directed={directed}
             showWeight={weighted}
             flow={flow}

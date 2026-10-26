@@ -127,6 +127,14 @@
   filter: drop-shadow(0 0 3px var(--neon)) drop-shadow(0 0 8px var(--neon-glow));
 }
 
+.edge {
+  transition: opacity 0.25s ease;
+}
+
+.edge[data-dimmed] {
+  opacity: 0.3;
+}
+
 /* The edge being walked right now: dashes travel in the direction of the walk. */
 .edge[data-flow] .line {
   stroke-dasharray: 10 8;

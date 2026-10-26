@@ -9,6 +9,7 @@ interface EdgeViewProps {
   edge: GraphEdge;
   geometry: EdgeGeometry;
   status: EdgeStatus;
+  dimmed: boolean;
   directed: boolean;
   showWeight: boolean;
   /** Set while this edge is the one being walked; says which way the animation runs. */
@@ -16,9 +17,9 @@ interface EdgeViewProps {
   onClick: (event: MouseEvent<SVGGElement>) => void;
 }
 
-export function EdgeView({ edge, geometry, status, directed, showWeight, flow, onClick }: EdgeViewProps) {
+export function EdgeView({ edge, geometry, status, dimmed, directed, showWeight, flow, onClick }: EdgeViewProps) {
   return (
-    <g className={styles.edge} data-status={status} data-flow={flow ?? undefined} onClick={onClick}>
+    <g className={styles.edge} data-status={status} data-dimmed={dimmed || undefined} data-flow={flow ?? undefined} onClick={onClick}>
       {/* Wide invisible stroke so thin edges are easy to click. */}
       <path className={styles.edgeHit} d={geometry.path} />
       <path
