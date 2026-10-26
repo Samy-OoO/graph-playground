@@ -81,7 +81,7 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
       { kind: 'node', status: 'queued', label: 'Reachable by a queued edge' },
       { kind: 'node', status: 'visited', label: 'In the tree' },
       { kind: 'node', status: 'default', label: 'Not reached yet' },
-      { kind: 'edge', status: 'active', label: 'Being queued / taken' },
+      { kind: 'edge', status: 'active', label: 'Cheapest edge to a new node' },
       { kind: 'edge', status: 'settled', label: 'Tree edge' },
       { kind: 'edge', status: 'skipped', label: 'Skipped (would form a cycle)' },
     ],

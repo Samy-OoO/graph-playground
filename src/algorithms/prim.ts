@@ -33,29 +33,33 @@ export function generatePrimSteps(graph: GraphData, startNodeId: string) : Algor
     let totalWeight = 0;
     let treeCount = 0;
 
+    // Like the `key_values` / `parents` arrays: the cheapest known edge into each node outside the tree.
+    // Only these edges are shown as candidates, so the canvas never lights up every edge at once.
+    const bestEdge = new Map<string, QueueEntry>();
     const minHeap = new MinPriorityQueue<QueueEntry>((entry) => entry.weight);
     
     function formatWeight(weight: number): string {
         return Number.isFinite(weight) ? String(Number(weight.toFixed(3))) : '∞';
     }
 
+    const entryLabel = (entry: QueueEntry) => `${edgeLabel(entry.fromNodeId, entry.nodeId)} (${formatWeight(entry.weight)})`;
+
     function record(message: string, curNodeId: string | null, extras: {
         traversal?: EdgeTraversal;
         activeEdgeId?: string;
-        skippedEdgeId?: string;
+        skippedEdgeIds?: string[];
     } = {}) {
-        const queueEntries = minHeap.toArray();
+        const candidates = [...bestEdge.values()].sort((a, b) => a.weight - b.weight);
 
         const nodeStatus: Record<string, NodeStatus> = {};
-        for (const entry of queueEntries) {
-            if (!inTree.has(entry.nodeId)) nodeStatus[entry.nodeId] = 'queued';
-        }
+        for (const entry of candidates) nodeStatus[entry.nodeId] = 'queued';
         for (const id of inTree) nodeStatus[id] = 'visited';
         if (curNodeId) nodeStatus[curNodeId] = 'current';
 
         const edgeStatus: Record<string, EdgeStatus> = {};
         for (const id of treeEdges) edgeStatus[id] = 'settled';
-        if (extras.skippedEdgeId) edgeStatus[extras.skippedEdgeId] = 'skipped';
+        for (const entry of candidates) edgeStatus[entry.edgeId] = 'active';
+        for (const id of extras.skippedEdgeIds ?? []) edgeStatus[id] = 'skipped';
         if (extras.activeEdgeId) edgeStatus[extras.activeEdgeId] = 'active';
 
         steps.push({
@@ -64,26 +68,45 @@ export function generatePrimSteps(graph: GraphData, startNodeId: string) : Algor
             edgeStatus,
             traversal: extras.traversal ?? null,
             structure: {
-                title: 'Priority queue',
+                title: 'Cheapest edge to each node',
                 kind: 'queue',
-                items: queueEntries.map((entry) => `${edgeLabel(entry.fromNodeId, entry.nodeId)} (${formatWeight(entry.weight)})`),
+                items: candidates.map(entryLabel),
             },
         });
     }
 
-    // Queues neighbors 
-    function queueEdgesFrom(nodeId: string) {
+    // Looks at the edges from a node that just joined the tree. For every neighbor outside the tree,
+    // keep only the cheapest edge seen so far (a cheaper one replaces the old candidate).
+    function updateCandidatesFrom(nodeId: string) {
+        const added: string[] = [];
+        const improved: string[] = [];
+        const replacedEdgeIds: string[] = [];
+
         for (const nei of adjacency.get(nodeId) ?? []) {
             if (inTree.has(nei.nodeId)) continue;
-            
+
             const weight = graph.weighted ? (nei.weight ?? 1) : 1;
-            minHeap.enqueue({ nodeId: nei.nodeId, fromNodeId: nodeId, edgeId: nei.edgeId, weight });
-            record(
-                `Queue ${edgeLabel(nodeId, nei.nodeId)} (${formatWeight(weight)}).`,
-                nodeId,
-                { traversal: { edgeId: nei.edgeId, fromNodeId: nodeId }, activeEdgeId: nei.edgeId },
-            );
+            const old = bestEdge.get(nei.nodeId);
+            if (old && weight >= old.weight) continue;
+
+            const entry: QueueEntry = { nodeId: nei.nodeId, fromNodeId: nodeId, edgeId: nei.edgeId, weight };
+            bestEdge.set(nei.nodeId, entry);
+            minHeap.enqueue(entry);
+
+            if (old) {
+                improved.push(`${entryLabel(entry)} replaces ${entryLabel(old)}`);
+                replacedEdgeIds.push(old.edgeId);
+            } else {
+                added.push(entryLabel(entry));
+            }
         }
+
+        if (added.length === 0 && improved.length === 0) return;
+
+        const parts = [`Check the edges from ${labelOf(nodeId)}.`];
+        if (added.length > 0) parts.push(`New candidates: ${added.join(', ')}.`);
+        if (improved.length > 0) parts.push(`Cheaper edges found: ${improved.join(', ')}.`);
+        record(parts.join(' '), nodeId, { skippedEdgeIds: replacedEdgeIds });
     }
 
     let rootId: string | undefined = startNodeId;
@@ -92,41 +115,35 @@ export function generatePrimSteps(graph: GraphData, startNodeId: string) : Algor
         inTree.add(rootId);
         record(
             treeCount === 0
-            ? `Start at ${labelOf(rootId)}. Add it to the tree and queue its edges.`
+            ? `Start at ${labelOf(rootId)}. Add it to the tree.`
             : `No edge leads out of the tree any more. Start a new tree at ${labelOf(rootId)}`,
             rootId,
         );
         treeCount++;
-        queueEdgesFrom(rootId);
+        updateCandidatesFrom(rootId);
 
 
         while (!minHeap.isEmpty()) {
             const entry = minHeap.dequeue();
             if (!entry) break;
 
-            const label = `${edgeLabel(entry.fromNodeId, entry.nodeId)} (${formatWeight(entry.weight)})`;
-            const traversal: EdgeTraversal = { edgeId: entry.edgeId, fromNodeId: entry.fromNodeId };
+            // Ignore entries left behind after a cheaper edge replaced them (or their node joined the tree).
+            if (inTree.has(entry.nodeId) || bestEdge.get(entry.nodeId) !== entry) continue;
 
+            const traversal: EdgeTraversal = { edgeId: entry.edgeId, fromNodeId: entry.fromNodeId };
             const { nodeId: cur, weight } = entry;
-            if (inTree.has(cur)) {
-                record(
-                    `Skip ${label}: ${labelOf(cur)} is already in the tree, so this edge would form a cycle.`, 
-                    null,
-                    { traversal, skippedEdgeId: entry.edgeId},
-                );
-                continue;
-            }
 
             inTree.add(cur);
-            record(`Take the cheapest edge ${label} from the queue. Add ${labelOf(entry.nodeId)} to the tree.`,
-                entry.nodeId,
+            bestEdge.delete(cur);
+            record(`Take the cheapest edge ${entryLabel(entry)}. Add ${labelOf(cur)} to the tree.`,
+                cur,
                 { traversal, activeEdgeId: entry.edgeId },
             );
 
             treeEdges.add(entry.edgeId);
             treeEdgeLabels.push(edgeLabel(entry.fromNodeId, cur));
             totalWeight += weight;
-            queueEdgesFrom(entry.nodeId);
+            updateCandidatesFrom(cur);
         }
         
         rootId = graph.nodes.find((node) => !inTree.has(node.id))?.id;

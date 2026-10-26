@@ -18,7 +18,7 @@ describe('generatePrimSteps', () => {
 
   it('builds the minimum spanning tree', () => {
     const last = generatePrimSteps(graph, 'A').at(-1)!;
-    expect(last.message).toContain('minimum spanning tree has A–B, B–C, C–D');
+    expect(last.message).toContain('Minimum Spanning Tree has A ↔ B, B ↔ C, C ↔ D');
     expect(last.message).toContain('Total weight: 6');
     expect(last.edgeStatus).toEqual({ 'A>B': 'settled', 'B>C': 'settled', 'C>D': 'settled' });
   });
@@ -29,15 +29,26 @@ describe('generatePrimSteps', () => {
     }
   });
 
-  it('shows the queued edges, cheapest first', () => {
+  it('lists only the cheapest edge to each outside node, cheapest first', () => {
     const steps = generatePrimSteps(graph, 'A');
-    const queuedBD = steps.find((step) => step.message.startsWith('Queue B–D'))!;
-    expect(queuedBD.structure?.items).toEqual(['B–C (2)', 'A–C (4)', 'B–D (5)']);
+    const afterA = steps.find((step) => step.message.startsWith('Check the edges from A'))!;
+    expect(afterA.structure?.items).toEqual(['A ↔ B (1)', 'A ↔ C (4)']);
+
+    const afterB = steps.find((step) => step.message.startsWith('Check the edges from B'))!;
+    expect(afterB.structure?.items).toEqual(['B ↔ C (2)', 'B ↔ D (5)']);
+  });
+
+  it('only highlights one candidate edge per node outside the tree', () => {
+    for (const step of generatePrimSteps(graph, 'A')) {
+      const active = Object.values(step.edgeStatus).filter((status) => status === 'active').length;
+      const outside = Object.values(step.nodeStatus).filter((status) => status === 'queued').length;
+      expect(active).toBeLessThanOrEqual(outside + 1); // +1 for the edge being taken
+    }
   });
 
   it('highlights the edge being taken, then keeps it as a tree edge', () => {
     const steps = generatePrimSteps(graph, 'A');
-    const index = steps.findIndex((step) => step.message.startsWith('Take the cheapest edge A–B'));
+    const index = steps.findIndex((step) => step.message.startsWith('Take the cheapest edge A ↔ B'));
 
     expect(steps[index].edgeStatus['A>B']).toBe('active');
     expect(steps[index].traversal).toEqual({ edgeId: 'A>B', fromNodeId: 'A' });
@@ -45,16 +56,21 @@ describe('generatePrimSteps', () => {
     expect(steps[index + 1].edgeStatus['A>B']).toBe('settled');
   });
 
-  it('skips a queued edge whose far end already joined the tree', () => {
-    const skip = generatePrimSteps(graph, 'A').find((step) => step.message.startsWith('Skip A–C'))!;
-    expect(skip.message).toContain('would form a cycle');
-    expect(skip.edgeStatus['A>C']).toBe('skipped');
+  it('swaps a candidate edge out when a cheaper one to the same node appears', () => {
+    const steps = generatePrimSteps(graph, 'A');
+    const check = steps.find((step) => step.message.startsWith('Check the edges from B'))!;
+    expect(check.message).toContain('B ↔ C (2) replaces A ↔ C (4)');
+    expect(check.edgeStatus['A>C']).toBe('skipped');
+    expect(check.edgeStatus['B>C']).toBe('active');
+
+    const later = steps.find((step) => step.message.startsWith('Take the cheapest edge B ↔ C'))!;
+    expect(later.edgeStatus['A>C']).toBeUndefined();
   });
 
   it('builds a spanning forest when the graph is disconnected', () => {
     const forest = makeGraph('ABCD', ['A>B:1', 'C>D:2'], options);
     const last = generatePrimSteps(forest, 'A').at(-1)!;
-    expect(last.message).toContain('forest (2 trees)');
+    expect(last.message).toContain('Forest (2 trees)');
     expect(last.message).toContain('Total weight: 3');
   });
 
