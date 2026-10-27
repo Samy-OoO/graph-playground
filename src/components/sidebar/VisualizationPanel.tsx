@@ -21,7 +21,7 @@ export function VisualizationPanel({ nodes, algorithm }: VisualizationPanelProps
       ) : (
         <div className={styles.body}>
           {definition.randomStart ? (
-              <p className={styles.hint}>Starts from a random node each time you generate the steps.</p>
+              <p className={styles.hint}>{definition.startHint ?? 'Starts from a random node each time you generate the steps.'}</p>
             ) : (
             <div className={styles.field}>
               <label htmlFor="start-node">Start node</label>

@@ -98,7 +98,7 @@ export function generateBellmanFordSteps(graph: GraphData, startNodeId: string) 
                 previousEdge.set(toNodeId, edgeId);
                 changed = true;
                 record(
-                    `Relax edge ${from} → ${to}: ${formatNumber(fromDistance)} + ${weight < 0 ? bracketed(weight) : weight} = ${formatNumber(newDistance)} ` + 
+                    `Relax edge ${from} → ${to}: ${formatNumber(fromDistance)} + ${bracketed(weight)} = ${formatNumber(newDistance)} ` + 
                     `beats ${formatNumber(toDistance)}, so update ${to}.`,
                     toNodeId,
                     { traversal, activeEdgeId: edgeId },
@@ -106,7 +106,7 @@ export function generateBellmanFordSteps(graph: GraphData, startNodeId: string) 
             }
             else {
                 record(
-                    `${from} → ${to}: ${formatNumber(fromDistance)} + ${weight < 0 ? bracketed(weight) : weight} = ${formatNumber(newDistance)} ` + 
+                    `${from} → ${to}: ${formatNumber(fromDistance)} + ${bracketed(weight)} = ${formatNumber(newDistance)} ` + 
                     `is not better than ${formatNumber(toDistance)}. Keep it.`,
                     toNodeId,
                     { traversal, skippedEdgeId: edgeId },

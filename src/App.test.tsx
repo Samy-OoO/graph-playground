@@ -32,7 +32,7 @@ describe('App', () => {
   it('lists coming-soon algorithms as disabled', () => {
     render(<App />);
 
-    expect((screen.getByRole('button', { name: /Dijkstra/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: /Dijkstra/ }) as HTMLButtonElement).disabled).toBe(false);
     expect((screen.getByRole('button', { name: /Topological Sort/ }) as HTMLButtonElement).disabled).toBe(true);
   });
 

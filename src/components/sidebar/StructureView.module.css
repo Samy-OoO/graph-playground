@@ -56,3 +56,51 @@
   font-weight: 500;
   color: var(--text-muted);
 }
+
+.matrixScroll {
+  overflow-x: auto;
+}
+
+.matrix {
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.matrix th,
+.matrix td {
+  min-width: 30px;
+  padding: 5px 7px;
+  text-align: center;
+  border-radius: var(--radius-sm);
+}
+
+.matrix th {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.matrix th[data-pivot='true'] {
+  color: var(--node-current-stroke);
+}
+
+.matrix td {
+  color: var(--text-soft);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+}
+
+.matrix td[data-pivot='true'] {
+  border-color: var(--node-current-fill);
+}
+
+.matrix td[data-focus] {
+  color: #fff;
+  border-color: var(--neon);
+  box-shadow: 0 0 8px var(--neon-glow);
+}
+
+.matrix td[data-focus='updated'] {
+  background: var(--accent-strong);
+}

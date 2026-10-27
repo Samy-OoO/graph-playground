@@ -19,12 +19,24 @@ export type NodeStatus = 'default' | 'current' | 'queued' | 'onPath' | 'visited'
  */
 export type EdgeStatus = 'default' | 'active' | 'settled' | 'skipped';
 
+/** A table of values, such as the distance between every pair of nodes */
+export interface MatrixSnapshot {
+  columnLabels: string[];
+  rows: { label: string; cells: string[] }[];
+  /** Index of the row and column to tint (the intermediate node in Floyd-Warshall). */
+  pivot?: number;
+  /** The cell being checked, and whether it just changed. */
+  focus?: { row: number; column: number; updated: boolean };
+}
+
 /** Contents of the helper structure (call stack, queue, …) shown next to the canvas. */
 export interface StructureSnapshot {
   title: string;
-  kind: 'stack' | 'queue';
+  kind: 'stack' | 'queue' | 'matrix';
   /** Node labels. Stacks: bottom first, top last. Queues: front first. */
   items: string[];
+  /** Only for kind 'matrix' */
+  matrix?: MatrixSnapshot;
 }
 
 /** The edge being walked in this step, and which end the walk starts from. */
@@ -57,6 +69,7 @@ export interface AlgorithmDefinition {
   /** Listed in the picker but not built yet. */
   comingSoon: boolean;
   randomStart?: boolean;
+  startHint?: string;
   generateSteps: ((graph: GraphData, startNodeId: string) => AlgorithmStep[]) | null;
   legend: LegendItem[];
 }

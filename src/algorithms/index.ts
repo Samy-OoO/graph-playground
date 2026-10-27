@@ -3,6 +3,7 @@ import { generateDFSSteps } from './dfs';
 import { generateDijkstraSteps } from './dijkstra';
 import { generatePrimSteps } from './prim';
 import { generateBellmanFordSteps } from './bellman-ford';
+import { generateFloydWarshallSteps } from './floyd-warshall';
 import type { AlgorithmDefinition, AlgorithmId } from './types';
 
 /**
@@ -73,7 +74,7 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
     id: 'bellman-ford',
     label: 'Bellman-Ford',
     summary: 'Shortest path from one node in a graph with possible negative edge weights',
-    complexity: 'O(V + E)',
+    complexity: 'O(V . E)',
     comingSoon: false,
     generateSteps: generateBellmanFordSteps,
     legend: [
@@ -89,11 +90,18 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
   {
     id: 'floyd-warshall',
     label: 'Floyd-Warshall',
-    summary: 'Shortest distance between each pair of edges.',
+    summary: 'Finds the shortest path between every pair of nodes by trying each node in turn as a stopover.',
     complexity: 'O(V³)',
-    comingSoon: true,
-    generateSteps: null,
-    legend: [],
+    comingSoon: false,
+    randomStart: true,
+    startHint: 'Finds the shortest path between every pair of nodes, so no start node is needed.',
+    generateSteps: generateFloydWarshallSteps,
+    legend: [
+      { kind: 'node', status: 'current', label: 'Stopover node k' },
+      { kind: 'node', status: 'queued', label: 'Path start and end' },
+      { kind: 'node', status: 'visited', label: 'Done' },
+      { kind: 'edge', status: 'active', label: 'Route that just got shorter' },
+    ],
   },
   {
     id: 'prim',
