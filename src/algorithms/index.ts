@@ -2,6 +2,7 @@ import { generateBFSSteps } from './bfs';
 import { generateDFSSteps } from './dfs';
 import { generateDijkstraSteps } from './dijkstra';
 import { generatePrimSteps } from './prim';
+import { generateBellmanFordSteps } from './bellman-ford';
 import type { AlgorithmDefinition, AlgorithmId } from './types';
 
 /**
@@ -69,9 +70,35 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
     ],
   },
   {
+    id: 'bellman-ford',
+    label: 'Bellman-Ford',
+    summary: 'Shortest path from one node in a graph with possible negative edge weights',
+    complexity: 'O(V + E)',
+    comingSoon: false,
+    generateSteps: generateBellmanFordSteps,
+    legend: [
+      { kind: 'node', status: 'current', label: 'Node being updated' },
+      { kind: 'node', status: 'queued', label: 'Has a distance' },
+      { kind: 'node', status: 'visited', label: 'Final distance' },
+      { kind: 'node', status: 'default', label: 'No distance yet (∞)' },
+      { kind: 'edge', status: 'active', label: 'Relaxed (improved)' },
+      { kind: 'edge', status: 'settled', label: 'Current shortest-path edge' },
+      { kind: 'edge', status: 'skipped', label: 'No improvement' },
+    ],
+  },
+  {
+    id: 'floyd-warshall',
+    label: 'Floyd-Warshall',
+    summary: 'Shortest distance between each pair of edges.',
+    complexity: 'O(V³)',
+    comingSoon: true,
+    generateSteps: null,
+    legend: [],
+  },
+  {
     id: 'prim',
     label: "Prim",
-    summary: 'Grows a minimum spanning tree from a random node by always taking the cheapest edge that reaches a new node.',
+    summary: 'Grows a Minimum Spanning Tree from a random node by always taking the cheapest edge that reaches a new node.',
     complexity: 'O(E log V)',
     comingSoon: false,
     randomStart: true,
@@ -85,6 +112,15 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
       { kind: 'edge', status: 'settled', label: 'Tree edge' },
       { kind: 'edge', status: 'skipped', label: 'Skipped (would form a cycle)' },
     ],
+  },
+  {
+    id: 'kruskal',
+    label: 'Kruskal',
+    summary: 'Grows a Minimum Spanning Tree/Forest, starting from the least weighted edge to the greatest.',
+    complexity: 'O(E log V)',
+    comingSoon: true,
+    generateSteps: null,
+    legend: [],
   },
   {
     id: 'topo-sort',
