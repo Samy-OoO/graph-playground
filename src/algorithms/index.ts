@@ -4,6 +4,7 @@ import { generateDijkstraSteps } from './dijkstra';
 import { generatePrimSteps } from './prim';
 import { generateBellmanFordSteps } from './bellman-ford';
 import { generateFloydWarshallSteps } from './floyd-warshall';
+import { generateTopoSortSteps } from './topo-sort';
 import type { AlgorithmDefinition, AlgorithmId } from './types';
 
 /**
@@ -135,9 +136,19 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
     label: 'Topological Sort',
     summary: 'Orders the nodes of a directed acyclic graph so every edge points forward.',
     complexity: 'O(V + E)',
-    comingSoon: true,
-    generateSteps: null,
-    legend: [],
+    comingSoon: false,
+    randomStart: true,
+    startHint: 'Orders the whole graph, so no start node is needed. The graph must be directed.',
+    generateSteps: generateTopoSortSteps,
+    legend: [
+      { kind: 'node', status: 'current', label: 'Node being placed' },
+      { kind: 'node', status: 'queued', label: 'Ready (in-degree 0)' },
+      { kind: 'node', status: 'visited', label: 'Placed in the order' },
+      { kind: 'node', status: 'default', label: 'Still waiting on edges' },
+      { kind: 'edge', status: 'active', label: 'Edge being removed' },
+      { kind: 'edge', status: 'settled', label: 'Edge removed' },
+      { kind: 'edge', status: 'skipped', label: 'Edge never removed (cycle)' },
+    ],
   },
 ];
 

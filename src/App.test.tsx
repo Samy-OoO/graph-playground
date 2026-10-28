@@ -33,7 +33,7 @@ describe('App', () => {
     render(<App />);
 
     expect((screen.getByRole('button', { name: /Dijkstra/ }) as HTMLButtonElement).disabled).toBe(false);
-    expect((screen.getByRole('button', { name: /Topological Sort/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: /Topological Sort/ }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('runs DFS on the sample graph and lights up the active path edge by edge', async () => {

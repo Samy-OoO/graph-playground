@@ -19,7 +19,7 @@ export function StructureView({ structure }: { structure: StructureSnapshot }) {
   return (
     <div className={styles.structure}>
       <h3 className={styles.title}>{structure.title}</h3>
-      {items.length === 0 ? (
+      {structure.kind !== 'matrix' && (items.length === 0 ? (
         <p className={styles.empty}>Empty</p>
       ) : (
         <ol className={styles.items} data-kind={structure.kind}>
@@ -31,7 +31,8 @@ export function StructureView({ structure }: { structure: StructureSnapshot }) {
             </li>
           ))}
         </ol>
-      )}
+      ))}
+      {structure.matrix && <MatrixTable matrix={structure.matrix} />}
     </div>
   );
 }
