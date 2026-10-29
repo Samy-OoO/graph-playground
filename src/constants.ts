@@ -2,7 +2,7 @@
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 500;
 
-export const NODE_RADIUS = 22;
+export const NODE_RADIUS = 20;
 
 /** How far reciprocal directed edges (A→B and B→A) bow away from each other. */
 export const EDGE_CURVE = 40;

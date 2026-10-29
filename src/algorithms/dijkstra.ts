@@ -58,25 +58,31 @@ export function generateDijkstraSteps(graph: GraphData, startNodeId: string) : A
 
     function record(message: string, currentNodeId: string | null, extras: {
         traversal?: EdgeTraversal;
-        activeEdgeId?: string;
-        skippedEdgeId?: string;
+        activeEdgeIds?: string[];
+        skippedEdgeIds?: string[];
     } = {},
     ) {
-        const queueEntries = minHeap.toArray();
+        // Node Status
+        const queueEntries = minHeap.toArray()
+            .filter(({ nodeId, distance }) => !visited.has(nodeId) && distance === distances.get(nodeId))
+            .sort((a, b) => a.distance - b.distance);
         const nodeStatus: Record<string, NodeStatus> = {};
-        
+
         for (const entry of queueEntries) {
             if (!visited.has(entry.nodeId)) nodeStatus[entry.nodeId] = 'queued';
         }
         for (const id of visited) nodeStatus[id] = 'visited';
-
         if (currentNodeId) nodeStatus[currentNodeId] = 'current';
 
+        // Edge Status
         const edgeStatus: Record<string, EdgeStatus> = {};
-        
         for (const edgeId of settledEdges) edgeStatus[edgeId] = 'settled';
-        if (extras.skippedEdgeId && !settledEdges.has(extras.skippedEdgeId)) edgeStatus[extras.skippedEdgeId] = 'skipped';
-        if (extras.activeEdgeId && !settledEdges.has(extras.activeEdgeId)) edgeStatus[extras.activeEdgeId] = 'active';
+        for (const edgeId of extras.skippedEdgeIds ?? []) {
+            if (!settledEdges.has(edgeId)) edgeStatus[edgeId] = 'skipped';
+        }
+        for(const edgeId of extras.activeEdgeIds ?? []) {
+            if (!settledEdges.has(edgeId)) edgeStatus[edgeId] = 'active';
+        }
 
         steps.push({
             message,
@@ -105,10 +111,7 @@ export function generateDijkstraSteps(graph: GraphData, startNodeId: string) : A
         const { nodeId: cur, distance } = entry;
 
         // Ignore outdated entries left behind after a better distance was found.
-        if (distance !== distances.get(cur) || visited.has(cur)) {
-            record(`Skipping the outdated queue entry for ${labelOf(cur)}`, null);
-            continue;
-        }
+        if (distance !== distances.get(cur) || visited.has(cur)) continue;
 
         visited.add(cur);
         visitOrder.push(labelOf(cur));
@@ -118,25 +121,19 @@ export function generateDijkstraSteps(graph: GraphData, startNodeId: string) : A
 
         record(`Take ${labelOf(cur)} from the Min-Heap and settle it at the distance ${distance}.`, cur,);
 
+        // Relax every edge that leaves cur in one go, so its whole neighbourhood lights up in a single frame.
+        // Edges that lead to settled nodes are finished business, so they are left out.
+        const improved: string[] = [];
+        const kept: string[] = [];
+        const improvedEdgeIds: string[] = [];
+        const keptEdgeIds: string[] = [];
+
         for (const nei of adjacency.get(cur) ?? []) {
+            if (visited.has(nei.nodeId)) continue;
+
             const weight = graph.weighted ? (nei.weight ?? 1) : 1;
-            const traversal: EdgeTraversal = {
-                edgeId: nei.edgeId,
-                fromNodeId: cur,
-            };
-
-            if (visited.has(nei.nodeId)) {
-                record(
-                    `${labelOf(cur)} ${arrow} ${labelOf(nei.nodeId)}: ` + 
-                    `${labelOf(nei.nodeId)} is already settled, so skip this edge.`,
-                    cur,
-                    { traversal, skippedEdgeId: nei.edgeId },
-                );
-                continue;
-            }
-
             const candidateDistance = distance + weight;
-            const previousDistance = distances.get(nei.nodeId)!;
+            const previousDistance = distances.get(nei.nodeId)!;            
 
             if (candidateDistance < previousDistance) {
                 distances.set(nei.nodeId, candidateDistance);
@@ -145,22 +142,24 @@ export function generateDijkstraSteps(graph: GraphData, startNodeId: string) : A
                 // Insert the improved distance. Older entries become stale automatically.
                 minHeap.enqueue({ nodeId: nei.nodeId, distance: candidateDistance, });
 
-                record(
-                    `Relax ${labelOf(cur)} ${arrow} ${labelOf(nei.nodeId)}: ` + 
-                    `improve the distance from ${formatDistance(previousDistance)} ` + 
-                    `to ${formatDistance(candidateDistance)}.`,
-                    cur,
-                    { traversal, activeEdgeId: nei.edgeId },
-                );
+                improved.push(`${labelOf(nei.nodeId)} ${formatDistance(previousDistance)} → ${formatDistance(candidateDistance)}`);
+                improvedEdgeIds.push(nei.edgeId);
             }
             else {
-                record(
-                    `Keep the distance to ${labelOf(nei.nodeId)} at ` + 
-                    `${formatDistance(previousDistance)}; ${formatDistance(candidateDistance)} is not better.`,
-                    cur,
-                    { traversal, skippedEdgeId: nei.edgeId },
+                kept.push(
+                    `${labelOf(nei.nodeId)} stays at ${formatDistance(previousDistance)} ` + 
+                    `(${formatDistance(candidateDistance)} is not better)`,
                 );
+                keptEdgeIds.push(nei.edgeId);
             }
+        }
+
+        if (improved.length > 0 || kept.length > 0) {
+            const parts = [`Relax the edges from ${labelOf(cur)}.`];
+            if (improved.length > 0) parts.push(`Improved: ${improved.join(', ')}.`);
+            if (kept.length > 0) parts.push(`No improvement: ${kept.join(', ')}.`);
+            
+            record(parts.join(' '), cur, { activeEdgeIds: improvedEdgeIds, skippedEdgeIds: keptEdgeIds });
         }
     }
 
