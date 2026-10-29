@@ -5,7 +5,10 @@ import { generatePrimSteps } from './prim';
 import { generateBellmanFordSteps } from './bellman-ford';
 import { generateFloydWarshallSteps } from './floyd-warshall';
 import { generateTopoSortSteps } from './topo-sort';
+import { generateEulerSteps } from './eulerian';
+import { generateKruskalSteps } from './kruskal';
 import type { AlgorithmDefinition, AlgorithmId } from './types';
+
 
 /**
  * The algorithm registry. To add an algorithm: write a `generate…Steps` function that returns
@@ -125,11 +128,20 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
   {
     id: 'kruskal',
     label: 'Kruskal',
-    summary: 'Grows a Minimum Spanning Tree/Forest, starting from the least weighted edge to the greatest.',
-    complexity: 'O(E log V)',
-    comingSoon: true,
-    generateSteps: null,
-    legend: [],
+    summary: 'Grows a Minimum Spanning Tree/Forest, starting from the lightest weighted edge to the heaviest, skipping any edge that would close a cycle.',
+    complexity: 'O(E log E)',
+    comingSoon: false,
+    randomStart: true,
+    startHint: 'Considers every edge, so no start node is needed. The graph must be undirected.',
+    generateSteps: generateKruskalSteps,
+    legend: [
+      { kind: 'node', status: 'current', label: 'Ends of the edge being checked' },
+      { kind: 'node', status: 'visited', label: 'In the tree' },
+      { kind: 'node', status: 'default', label: 'Not in the tree yet' },
+      { kind: 'edge', status: 'active', label: 'Edge just added' },
+      { kind: 'edge', status: 'settled', label: 'Tree edge' },
+      { kind: 'edge', status: 'skipped', label: 'Skipped (would form a cycle)' },
+    ],
   },
   {
     id: 'topo-sort',
@@ -148,6 +160,25 @@ export const ALGORITHMS: AlgorithmDefinition[] = [
       { kind: 'edge', status: 'active', label: 'Edge being removed' },
       { kind: 'edge', status: 'settled', label: 'Edge removed' },
       { kind: 'edge', status: 'skipped', label: 'Edge never removed (cycle)' },
+    ],
+  },
+    {
+    id: 'eulerian',
+    label: 'Eulerian Path',
+    summary: 'Finds a walk that uses every edge exactly once (a circuit if it ends where it started), using a stack to splice loops together.',
+    complexity: 'O(V + E)',
+    comingSoon: false,
+    randomStart: true,
+    startHint: 'Picks the start node itself, so none needs to be chosen.',
+    generateSteps: generateEulerSteps,
+    legend: [
+      { kind: 'node', status: 'current', label: 'Top of the stack (the start, at the end)' },
+      { kind: 'node', status: 'queued', label: 'Odd or unbalanced node (a path ends at one)' },
+      { kind: 'node', status: 'onPath', label: 'On the stack' },
+      { kind: 'node', status: 'visited', label: 'Popped into the output' },
+      { kind: 'edge', status: 'active', label: 'Edge being walked' },
+      { kind: 'edge', status: 'settled', label: 'Edge used' },
+      { kind: 'edge', status: 'skipped', label: 'Edge never reached' },
     ],
   },
 ];

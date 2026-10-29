@@ -4,14 +4,6 @@ import { MatrixTable } from './MatrixTable';
 
 /** Shows the helper structure of the current step: the call stack (top first) or the queue (front first). */
 export function StructureView({ structure }: { structure: StructureSnapshot }) {
-  if (structure.matrix) {
-    return(
-      <div className={styles.structure}>
-        <h3 className={styles.title}>{structure.title}</h3>
-        <MatrixTable matrix={structure.matrix} />
-      </div>
-    );
-  }
   const isStack = structure.kind === 'stack';
   const items = isStack ? [...structure.items].reverse() : structure.items;
   const endLabel = isStack ? 'top' : 'front';
@@ -25,7 +17,7 @@ export function StructureView({ structure }: { structure: StructureSnapshot }) {
         <ol className={styles.items} data-kind={structure.kind}>
           {items.map((label, position) => (
             // Labels are unique per graph, so they make a stable key.
-            <li key={label} className={styles.item} data-end={position === 0}>
+            <li key ={`${position}:${label}`} className={styles.item} data-end={position === 0}>
               {label}
               {position === 0 && <span className={styles.tag}>{endLabel}</span>}
             </li>

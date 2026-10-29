@@ -1,6 +1,6 @@
 import type { GraphData } from '../types/graph';
 
-export type AlgorithmId = 'none' | 'bfs' | 'dfs' | 'dijkstra' | 'bellman-ford' | 'floyd-warshall' | 'prim' | 'kruskal' | 'topo-sort';
+export type AlgorithmId = 'none' | 'bfs' | 'dfs' | 'dijkstra' | 'bellman-ford' | 'floyd-warshall' | 'prim' | 'kruskal' | 'topo-sort' | 'eulerian';
 
 /**
  * How a node should look in a given step.
