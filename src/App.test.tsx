@@ -3,12 +3,25 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import App from './App';
+import { MemoryDraftStore } from './persistence/memoryDraftStore';
+import { MemoryRepository } from './persistence/memoryRepository';
+import { StorageProvider } from './persistence/StorageProvider';
 
 afterEach(cleanup);
 
+/** Renders the app with throwaway in-memory storage. */
+function renderApp() {
+  const storage = { repository: new MemoryRepository(), drafts: new MemoryDraftStore(), persistent: true };
+  return render(
+    <StorageProvider storage={storage}>
+      <App />
+    </StorageProvider>,
+  );
+}
+
 async function startDfsOnSample() {
   const user = userEvent.setup();
-  const view = render(<App />);
+  const view = renderApp();
 
   await user.click(screen.getByRole('button', { name: 'Load sample' }));
   await user.click(screen.getByRole('button', { name: 'DFS' }));
@@ -22,7 +35,7 @@ const count = (container: HTMLElement, selector: string) => container.querySelec
 
 describe('App', () => {
   it('shows the empty state and a tool hint before anything is built', () => {
-    render(<App />);
+    renderApp();
 
     expect(screen.getByText('Your graph is empty')).toBeTruthy();
     expect(screen.getByText('Click a node to select it. Press Delete to remove it.')).toBeTruthy();
@@ -30,7 +43,7 @@ describe('App', () => {
   });
 
   it('lists coming-soon algorithms as disabled', () => {
-    render(<App />);
+    renderApp();
 
     expect((screen.getByRole('button', { name: /Dijkstra/ }) as HTMLButtonElement).disabled).toBe(false);
     expect((screen.getByRole('button', { name: /Topological Sort/ }) as HTMLButtonElement).disabled).toBe(false);

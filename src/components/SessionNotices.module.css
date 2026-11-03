@@ -1,0 +1,28 @@
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text-soft);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.notice[data-tone='warning'] {
+  border-color: var(--warning);
+}
+
+.notice[data-tone='error'] {
+  color: var(--danger-text);
+  border-color: #5b343b;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

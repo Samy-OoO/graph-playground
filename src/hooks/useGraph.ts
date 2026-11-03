@@ -2,6 +2,7 @@ import { useCallback, useMemo, useReducer } from 'react';
 import { SAMPLE_GRAPH } from '../data/sampleGraph';
 import { createId } from '../utils/id';
 import { graphReducer, initialGraphState } from './graphReducer';
+import type { GraphData } from '../types/graph';
 
 /** Owns the graph data (nodes, edges, settings) and every way of changing it. */
 export function useGraph() {
@@ -31,6 +32,7 @@ export function useGraph() {
   const toggleDirected = useCallback(() => dispatch({ type: 'settings/toggleDirected' }), []);
   const toggleWeighted = useCallback(() => dispatch({ type: 'settings/toggleWeighted' }), []);
   const loadSample = useCallback(() => dispatch({ type: 'graph/replace', ...SAMPLE_GRAPH }), []);
+  const replaceGraph = useCallback((next: GraphData) => dispatch({ type: 'graph/replace', ...next}), []);
   const clear = useCallback(() => dispatch({ type: 'graph/clear' }), []);
 
   // Stable object for anything that just needs to read the graph (algorithms, adjacency list).
@@ -51,6 +53,7 @@ export function useGraph() {
     toggleDirected,
     toggleWeighted,
     loadSample,
+    replaceGraph,
     clear,
   };
 }
