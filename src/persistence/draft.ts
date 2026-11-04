@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { documentSchema, type GraphDocument } from './schema';
+import { describeIssues } from './parse';
 
 export const draftSchema = z.object({
     document: documentSchema,
@@ -12,4 +13,12 @@ export type Draft = z.infer<typeof draftSchema>;
 // Wraps  working copy s a draft. `basedOn` is the `updatedAt` of the saved graph the work started from, or null if it was never saved.
 export function createDraft(document: GraphDocument, basedOn: string | null, now: Date = new Date()): Draft {
     return { document, basedOn, draftedAt: now.toISOString() };
+}
+
+// Throws a readable error if a draft breaks any rule. Draft storage calls this before writing.
+export function assertValidDraft(draft: Draft): void {
+    const result = draftSchema.safeParse(draft);
+    if (!result.success) {
+        throw new Error(`These unsaved changes cannot be kept: ${describeIssues(result.error.issues).join('; ')}`);
+    }
 }

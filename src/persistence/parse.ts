@@ -19,6 +19,27 @@ function formatPath(path: PropertyKey[]): string {
         .join('');
 }
 
+// Turns validation problems into short readable lines, and keeps the list from getting huge.
+export function describeIssues(issues: { path: PropertyKey[]; message: string }[]): string[] {
+    const messages = issues.map((issue) => {
+        const where = formatPath(issue.path);
+        return where ? `${where}: ${issue.message}` : issue.message;
+    });
+    const shown = messages.slice(0, MAX_REPORTED_ERRORS);
+    const hidden = messages.length - shown.length;
+    if (hidden > 0) shown.push(`...and ${hidden} more problem${hidden === 1 ? '' : 's'}`);
+    return shown;
+}
+
+// Throws a readable error if a document breaks any rule. Storage calls this before writing.
+export function assertValidDocument(document: GraphDocument): void {
+    const result = documentSchema.safeParse(document);
+    if (!result.success) {
+        throw new Error(`This graph cannot be saved: ${describeIssues(result.error.issues).join('; ')}`);
+    }
+}
+
+// For data that is already an object (for example, read back from IndexedDB).
 export function parseDocumentData(data: unknown): ParseResult {
     const probe = versionProbe.safeParse(data);
     if (!probe.success) {
@@ -34,29 +55,23 @@ export function parseDocumentData(data: unknown): ParseResult {
     const result = documentSchema.safeParse(data);
     if (result.success) return { ok: true, document: result.data };
 
-    const messages = result.error.issues.map((issue) => {
-        const where = formatPath(issue.path);
-        return where ? `${where}: ${issue.message}` : issue.message;
-    });
-    const shown = messages.slice(0, MAX_REPORTED_ERRORS);
-    const hidden = messages.length - shown.length;
-    if (hidden > 0) shown.push(`...and ${hidden} more problem${hidden === 1 ? '' : 's'}`);
+    const shown = describeIssues(result.error.issues);
     return fail(...shown);
 }
 
-    // For raw text, such as the contents of an imported file.
-    export function parseDocumentText(text: string): ParseResult {
-        const bytes = new TextEncoder().encode(text).length;
-        if (bytes > LIMITS.maxFileBytes) {
-            return fail(`The file is too large (the limit is ${LIMITS.maxFileBytes / (1024 * 1024)} MB).`);
-        }
-
-        let data: unknown;
-        try {
-            data = JSON.parse(text);
-        } catch {
-            return fail('The file is not valid JSON.');
-        }
-
-        return parseDocumentData(data);
+// For raw text, such as the contents of an imported file.
+export function parseDocumentText(text: string): ParseResult {
+    const bytes = new TextEncoder().encode(text).length;
+    if (bytes > LIMITS.maxFileBytes) {
+        return fail(`The file is too large (the limit is ${LIMITS.maxFileBytes / (1024 * 1024)} MB).`);
     }
+
+    let data: unknown;
+    try {
+        data = JSON.parse(text);
+    } catch {
+        return fail('The file is not valid JSON.');
+    }
+
+    return parseDocumentData(data);
+}

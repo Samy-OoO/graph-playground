@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { graphReducer, initialGraphState } from './graphReducer';
 import type { GraphAction, GraphState } from './graphReducer';
+import { LIMITS } from '../persistence/limits';
 
 function run(actions: GraphAction[], from: GraphState = initialGraphState): GraphState {
   return actions.reduce(graphReducer, from);
@@ -66,5 +67,33 @@ describe('graphReducer', () => {
     expect(afterAdd.version).toBeGreaterThan(initialGraphState.version);
     expect(afterMove.version).toBe(afterAdd.version);
     expect(afterMove.nodes[0]).toMatchObject({ x: 5, y: 5 });
+  });
+});
+
+describe('graph size limits', () => {
+  const manyNodes = Array.from({ length: LIMITS.maxNodes }, (_, i) => ({ id: `n${i}`, x: 10, y: 10, label: `N${i}` }));
+
+  it('ignores a new node once the node limit is reached', () => {
+    const full = run([{ type: 'graph/replace', nodes: manyNodes, edges: [], directed: true, weighted: false }]);
+    const after = graphReducer(full, addNode('one-too-many'));
+    expect(after.nodes).toHaveLength(LIMITS.maxNodes);
+  });
+
+  it('still accepts a node just below the limit', () => {
+    const almost = run([{ type: 'graph/replace', nodes: manyNodes.slice(1), edges: [], directed: true, weighted: false }]);
+    expect(graphReducer(almost, addNode('last-one')).nodes).toHaveLength(LIMITS.maxNodes);
+  });
+
+  it('ignores a new edge once the edge limit is reached', () => {
+    // The first maxEdges pairs of nodes, so n198 -> n199 is still free.
+    const edges = [];
+    for (let i = 0; i < manyNodes.length && edges.length < LIMITS.maxEdges; i++) {
+      for (let j = i + 1; j < manyNodes.length && edges.length < LIMITS.maxEdges; j++) {
+        edges.push({ id: `e${i}-${j}`, source: `n${i}`, destination: `n${j}` });
+      }
+    }
+    const full = run([{ type: 'graph/replace', nodes: manyNodes, edges, directed: true, weighted: false }]);
+    const after = graphReducer(full, addEdge('one-too-many', 'n198', 'n199'));
+    expect(after.edges).toHaveLength(LIMITS.maxEdges);
   });
 });

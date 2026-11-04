@@ -1,5 +1,5 @@
 import { DRAFTS_STORE, openGraphDB, type GraphDBConnection } from './database';
-import { draftSchema, type Draft } from './draft';
+import { assertValidDraft, draftSchema, type Draft } from './draft';
 import type { DraftStore } from './draftStore';
 
 
@@ -38,6 +38,7 @@ export class IndexedDbDraftStore implements DraftStore {
     }
 
     async save(draft: Draft): Promise<void> {
+        assertValidDraft(draft);
         const db = await this.database;
         await db.put(DRAFTS_STORE, draft);
     }

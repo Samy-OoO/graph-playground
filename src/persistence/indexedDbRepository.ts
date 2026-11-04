@@ -1,7 +1,7 @@
 import type { GraphRepository, GraphSummary } from './repository';
 import { toSummary } from './repository';
 import type { GraphDocument } from './schema';
-import { parseDocumentData } from './parse';
+import { assertValidDocument, parseDocumentData } from './parse';
 import { GRAPHS_STORE, openGraphDB, type GraphDBConnection } from './database';
 
 export class IndexedDbRepository implements GraphRepository {
@@ -40,6 +40,7 @@ export class IndexedDbRepository implements GraphRepository {
     }
 
     async save(document: GraphDocument): Promise<void> {
+        assertValidDocument(document);
         const db = await this.database;
         await db.put(GRAPHS_STORE, document);
     }

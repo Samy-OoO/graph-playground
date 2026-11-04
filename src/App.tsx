@@ -12,6 +12,7 @@ import { SessionNotices } from './components/SessionNotices';
 import { useDocumentSession } from './hooks/useDocumentSession';
 import { useUnsavedGuard } from './hooks/useUnsavedGuard';
 import { ConfirmDialog } from './components/ConfirmDialog';
+import { LimitNotice } from './components/LimitNotice';
 
 /**
  * App only wires things together:
@@ -28,14 +29,15 @@ export default function App() {
 
   return (
     <main className={styles.app}>
-      <AppHeader />
+      <AppHeader session={session} guard={guard}/>
 
       <SessionNotices session={session} />
+      <LimitNotice nodeCount={graph.nodes.length} edgeCount={graph.edges.length} />
 
       <div className={styles.workspace}>
         <AdjacencyPanel graph={graph.data} />
         <CanvasPanel graph={graph} editor={editor} algorithm={algorithm} />
-        <Sidebar graph={graph} editor={editor} algorithm={algorithm} session={session} guard={guard} />
+        <Sidebar graph={graph} editor={editor} algorithm={algorithm} />
       </div>
 
       <AlgorithmPicker selected={algorithm.definition} onSelect={algorithm.select} />

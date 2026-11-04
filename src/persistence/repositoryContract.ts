@@ -91,6 +91,13 @@ export function describeRepositoryContract(name: string, createRepository: () =>
         expect(stored?.graph.nodes).toHaveLength(2);
         });
 
+        it('refuses to store a graph that breaks the rules, and says why', async () => {
+            const broken = makeDocument('d1', 'Broken', '2026-10-31T09:00:00.000Z');
+            broken.graph.edges.push({ id: 'e2', source: 'a', destination: 'ghost' });
+
+            await expect(repository.save(broken)).rejects.toThrow(/cannot be saved.*graph\.edges\[1\]/);
+            expect(await repository.list()).toEqual([]);
+        });
         it('is not affected by changes made to a document it returned', async () => {
         await repository.save(makeDocument('d1', 'First', '2026-10-31T09:00:00.000Z'));
         const first = await repository.get('d1');

@@ -1,5 +1,7 @@
 import type { GraphEdge, GraphNode } from '../types/graph';
 import { canAddEdge, getNextNodeLabel } from '../utils/graph';
+import { LIMITS } from '../persistence/limits';
+
 
 export interface GraphState {
   nodes: GraphNode[];
@@ -37,6 +39,7 @@ export type GraphAction =
 export function graphReducer(state: GraphState, action: GraphAction): GraphState {
   switch (action.type) {
     case 'node/add': {
+      if (state.nodes.length >= LIMITS.maxNodes) return state;
       const node: GraphNode = { id: action.id, x: action.x, y: action.y, label: getNextNodeLabel(state.nodes) };
       return { ...state, nodes: [...state.nodes, node], version: state.version + 1 };
     }
@@ -56,6 +59,7 @@ export function graphReducer(state: GraphState, action: GraphAction): GraphState
       };
 
     case 'edge/add': {
+      if (state.edges.length >= LIMITS.maxEdges) return state;
       if (!canAddEdge(state.edges, state.directed, action.source, action.destination)) return state;
       const edge: GraphEdge = {
         id: action.id,

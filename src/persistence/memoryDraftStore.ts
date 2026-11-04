@@ -1,4 +1,4 @@
-import type { Draft } from "./draft";
+import { assertValidDraft, type Draft } from "./draft";
 import type { DraftStore } from "./draftStore";
 
 export class MemoryDraftStore implements DraftStore {
@@ -16,6 +16,7 @@ export class MemoryDraftStore implements DraftStore {
     }
 
     async save(draft: Draft): Promise<void> {
+        assertValidDraft(draft);
         this.drafts.set(draft.document.id, structuredClone(draft));
     }
 

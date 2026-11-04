@@ -65,6 +65,14 @@ export function describeDraftStoreContract(name: string, createStore: () => Draf
       await expect(store.delete('nope')).resolves.toBeUndefined();
     });
 
+    it('refuses to keep a draft that breaks the rules, and says why', async () => {
+      const broken = makeDraft('d1', 'Broken', '2026-10-31T09:00:00.000Z');
+      broken.document.graph.edges.push({ id: 'e1', source: 'a', destination: 'ghost' });
+
+      await expect(store.save(broken)).rejects.toThrow(/cannot be kept.*document\.graph\.edges\[0\]/);
+      expect(await store.list()).toEqual([]);
+    });
+
     it('is not affected by changes made to a draft after saving it', async () => {
       const draft = makeDraft('d1', 'First', '2026-10-31T09:00:00.000Z');
       await store.save(draft);

@@ -1,6 +1,7 @@
 import type { GraphRepository, GraphSummary } from './repository';
 import { toSummary } from './repository';
 import type { GraphDocument } from './schema';
+import { assertValidDocument } from './parse';
 
 // Keeps graphs in memory only. Used by tests, and a handy stand-in before the real storage exists.
 export class MemoryRepository implements GraphRepository {
@@ -18,6 +19,7 @@ export class MemoryRepository implements GraphRepository {
     }
 
     async save(document: GraphDocument): Promise<void> {
+        assertValidDocument(document);
         this.documents.set(document.id, structuredClone(document));
     }
 
