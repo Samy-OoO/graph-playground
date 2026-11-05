@@ -1,4 +1,5 @@
 import type { GraphDocument } from './schema';
+import { renderThumbnail } from './thumbnail';
 
 // What the "My graphs" list needs to show a graph, without carrying the whole graph.
 export type GraphSummary = {
@@ -8,6 +9,7 @@ export type GraphSummary = {
     updatedAt: string;
     nodeCount: number;
     edgeCount: number;
+    thumbnail: string;
 };
 
 export interface GraphRepository {
@@ -29,5 +31,6 @@ export function toSummary(document: GraphDocument): GraphSummary {
         updatedAt: document.updatedAt,
         nodeCount: document.graph.nodes.length,
         edgeCount: document.graph.edges.length,
+        thumbnail: renderThumbnail(document.graph),
     };
 }

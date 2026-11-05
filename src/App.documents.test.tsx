@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import './test/dialogPolyfill';
 import App from './App';
 import { createDocument, updateDocument } from './persistence/convert';
@@ -9,8 +9,13 @@ import { createDraft } from './persistence/draft';
 import { MemoryDraftStore } from './persistence/memoryDraftStore';
 import { MemoryRepository } from './persistence/memoryRepository';
 import { StorageProvider } from './persistence/StorageProvider';
+import { serializeDocument } from './persistence/fileTransfer';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 const twoNodes = {
   directed: true,
@@ -242,5 +247,182 @@ describe('notices', () => {
   it('does not warn when storage works', () => {
     renderApp(true);
     expect(screen.queryByText(/not letting the app store anything/)).toBeNull();
+  });
+});
+
+describe('copies, renaming and pictures', () => {
+  const stored = () => createDocument(twoNodes, 'Stored graph', 'd1', new Date('2026-10-31T09:00:00.000Z'));
+
+  it('shows a small picture of each saved graph', async () => {
+    const { user, repository } = renderApp();
+    await repository.save(stored());
+
+    await openLibrary(user);
+    const open = await screen.findByRole('button', { name: 'Open Stored graph' });
+
+    const picture = open.querySelector('img');
+    expect(picture?.getAttribute('src')).toMatch(/^data:image\/svg\+xml,/);
+  });
+
+  it('saves a copy that includes unsaved changes and leaves the original alone', async () => {
+    const { user, repository } = renderApp();
+    await repository.save(stored());
+    await openLibrary(user);
+    await user.click(await screen.findByRole('button', { name: 'Open Stored graph' }));
+    await screen.findByText('All changes saved');
+    await user.click(button('Clear graph')); // an unsaved change
+
+    await user.click(button('Save a copy'));
+    const dialog = await screen.findByRole('dialog');
+    const field = within(dialog).getByRole('textbox') as HTMLInputElement;
+    expect(field.value).toBe('Stored graph (copy)');
+    await user.clear(field);
+    await user.type(field, 'Branch');
+    await user.click(within(dialog).getByRole('button', { name: 'Save copy' }));
+
+    expect(await screen.findByText('All changes saved')).toBeTruthy();
+    expect(nameField().value).toBe('Branch');
+    expect((await repository.get('d1'))?.graph.nodes).toHaveLength(2); // the original is as it was
+    const names = (await repository.list()).map((graph) => graph.name).sort();
+    expect(names).toEqual(['Branch', 'Stored graph']);
+  });
+
+  it('duplicates a graph from the list', async () => {
+    const { user, repository } = renderApp();
+    await repository.save(stored());
+
+    await openLibrary(user);
+    await user.click(await screen.findByRole('button', { name: 'Duplicate Stored graph' }));
+
+    expect(await screen.findByRole('button', { name: 'Open Stored graph (copy)' })).toBeTruthy();
+    expect(await repository.list()).toHaveLength(2);
+  });
+
+  it('renames a graph that is not open, straight from the list', async () => {
+    const { user, repository } = renderApp();
+    await repository.save(stored());
+
+    await openLibrary(user);
+    await user.click(await screen.findByRole('button', { name: 'Rename Stored graph' }));
+    const dialog = await screen.findByRole('dialog');
+    const field = within(dialog).getByRole('textbox') as HTMLInputElement;
+    await user.clear(field);
+    await user.type(field, 'Better name');
+    await user.click(within(dialog).getByRole('button', { name: 'Rename' }));
+
+    expect(await screen.findByRole('button', { name: 'Open Better name' })).toBeTruthy();
+    expect((await repository.get('d1'))?.name).toBe('Better name');
+  });
+
+  it('renames the open graph on screen, to be saved with the next Save', async () => {
+    const { user, repository } = renderApp();
+    await repository.save(stored());
+    await openLibrary(user);
+    await user.click(await screen.findByRole('button', { name: 'Open Stored graph' }));
+    await screen.findByText('All changes saved');
+
+    await openLibrary(user);
+    await user.click(await screen.findByRole('button', { name: 'Rename Stored graph' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/saved with your next Save/)).toBeTruthy();
+    const field = within(dialog).getByRole('textbox') as HTMLInputElement;
+    await user.clear(field);
+    await user.type(field, 'Renamed open graph');
+    await user.click(within(dialog).getByRole('button', { name: 'Rename' }));
+
+    expect(nameField().value).toBe('Renamed open graph');
+    expect(screen.getByText('Unsaved changes')).toBeTruthy();
+    expect((await repository.get('d1'))?.name).toBe('Stored graph'); // not saved yet
+  });
+
+  it('does not accept an empty name', async () => {
+    const { user, repository } = renderApp();
+    await repository.save(stored());
+    await openLibrary(user);
+    await user.click(await screen.findByRole('button', { name: 'Rename Stored graph' }));
+    const dialog = await screen.findByRole('dialog');
+
+    await user.clear(within(dialog).getByRole('textbox'));
+
+    expect((within(dialog).getByRole('button', { name: 'Rename' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe('import and export', () => {
+  const shared = () => createDocument(twoNodes, 'Shared graph', 'id-from-the-file', new Date('2026-10-31T09:00:00.000Z'));
+  const fileInput = () => screen.getByLabelText('Import graph file') as HTMLInputElement;
+
+  it('exports the graph on screen as a named .json file', async () => {
+    const { user } = renderApp();
+    const createObjectURL = vi.fn(() => 'blob:fake-address');
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL: vi.fn() });
+    let downloadName = '';
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      downloadName = this.download;
+    });
+    await user.click(button('Load sample'));
+    await user.clear(nameField());
+    await user.type(nameField(), 'Road trip');
+
+    await openLibrary(user);
+    await user.click(button('Export this graph'));
+
+    expect(downloadName).toBe('road-trip.json');
+    const blob = (createObjectURL.mock.calls[0] as unknown as [Blob])[0];
+    const exported = JSON.parse(await blob.text());
+    expect(exported.name).toBe('Road trip');
+    expect(exported.graph.nodes.length).toBeGreaterThan(0); // unsaved changes are included
+  });
+
+  it('imports a file as a new, unsaved graph', async () => {
+    const { user } = renderApp();
+    const file = new File([serializeDocument(shared())], 'shared.json', { type: 'application/json' });
+
+    await user.upload(fileInput(), file);
+
+    expect(await screen.findByText('2 nodes, 1 edge')).toBeTruthy();
+    expect(nameField().value).toBe('Shared graph');
+    expect(screen.getByText('Unsaved changes')).toBeTruthy();
+  });
+
+  it('gives an imported graph its own identity, so it never overwrites a saved one', async () => {
+    const { user, repository } = renderApp();
+    await repository.save(shared()); // the same id as the one inside the file
+    await user.upload(fileInput(), new File([serializeDocument(shared())], 'shared.json'));
+    await screen.findByText('Unsaved changes');
+
+    await user.click(button('Save'));
+    await screen.findByText('All changes saved');
+
+    expect(await repository.list()).toHaveLength(2);
+  });
+
+  it('explains why a file that is not a graph was refused, and leaves the graph alone', async () => {
+    const { user } = renderApp();
+    await user.click(button('Load sample'));
+
+    // A file picker can be switched to "All files", so a wrong kind of file can still arrive.
+    // The test helper normally filters by the input's `accept`, like a picker would, so turn that off.
+    const picker = userEvent.setup({ applyAccept: false });
+    await picker.upload(fileInput(), new File(['this is not json'], 'notes.txt'));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain('Could not import "notes.txt"');
+    expect(alert.textContent).toContain('not valid JSON');
+    expect(screen.queryByRole('dialog')).toBeNull(); // no unsaved-changes question for a file that failed
+    expect(screen.queryByText('0 nodes, 0 edges')).toBeNull();
+  });
+
+  it('asks about unsaved changes before an import replaces the graph', async () => {
+    const { user } = renderApp();
+    await user.click(button('Load sample'));
+
+    await user.upload(fileInput(), new File([serializeDocument(shared())], 'shared.json'));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Unsaved changes')).toBeTruthy();
+    await user.click(within(dialog).getByRole('button', { name: 'Discard changes' }));
+    expect(await screen.findByText('2 nodes, 1 edge')).toBeTruthy();
+    expect(nameField().value).toBe('Shared graph');
   });
 });

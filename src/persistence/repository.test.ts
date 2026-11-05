@@ -26,10 +26,15 @@ describe('toSummary', () => {
       updatedAt: '2026-10-31T09:00:00.000Z',
       nodeCount: 2,
       edgeCount: 1,
+      thumbnail: expect.stringContaining('<svg'),
     });
   });
 
   it('does not carry the graph itself', () => {
     expect(toSummary(doc)).not.toHaveProperty('graph');
+  });
+  
+  it('includes a picture of the graph, with a circle for each node', () => {
+    expect((toSummary(doc).thumbnail.match(/<circle/g) ?? []).length).toBe(2);
   });
 });

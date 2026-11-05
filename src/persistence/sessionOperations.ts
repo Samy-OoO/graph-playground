@@ -41,6 +41,18 @@ export function openedFromDocument(document: GraphDocument): OpenedGraph {
     };
 }
 
+// A graph from an imported file: it always gets a new id, so it can never overwrite the one right now.
+export function openedFromImport(
+    document: GraphDocument,
+    id: string = createId(),
+    now: Date = new Date(),
+): OpenedGraph {
+    return {
+        info: { id, name: document.name, createdAt: now.toISOString(), saved: null },
+        graph: documentToGraph(document),
+    };
+}
+
 // A fresh, blank, never-saved graph.
 export function startNewGraph(id: string = createId(), now: Date = new Date()): OpenedGraph {
     return {
@@ -84,7 +96,7 @@ export function applyDraft(opened: OpenedGraph, draft: Draft): OpenedGraph {
 }
 
 
-function toDocument(info: SessionInfo, working: WorkingCopy, now: Date): GraphDocument {
+export function buildDocument(info: SessionInfo, working: WorkingCopy, now: Date = new Date()): GraphDocument {
     const document = createDocument(working.graph, normalizeName(working.name), info.id, now);
     return { ...document, createdAt: info.createdAt };
 }
@@ -97,7 +109,7 @@ export async function saveGraph(
     working: WorkingCopy,
     now: Date = new Date(),
 ): Promise<SessionInfo> {
-    const document = toDocument(info, working, now);
+    const document = buildDocument(info, working, now);
     await stores.repository.save(document);
 
     // The graph is safely saved now. If the draft cannot be removed, that is not worth reporting
@@ -156,7 +168,7 @@ export async function autosaveDraft(
         return 'cleared';
     }
 
-    const document = toDocument(info, working, now);
+    const document = buildDocument(info, working, now);
     await stores.drafts.save(createDraft(document, info.saved?.updatedAt ?? null, now));
     return 'written';
 }

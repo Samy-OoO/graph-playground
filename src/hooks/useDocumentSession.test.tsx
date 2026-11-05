@@ -261,4 +261,38 @@ describe('useDocumentSession', () => {
     expect(result.current.session.name).toBe('Typed during save');
     expect(result.current.session.status).toBe('unsaved');
   });
+
+    it('turns an imported document into a new, unsaved graph with its own id', () => {
+    const { result } = setup();
+    const fromFile = createDocument(twoNodes, 'Shared graph', 'id-from-the-file', nineAm);
+
+    act(() => result.current.session.importDocument(fromFile));
+
+    expect(result.current.graph.nodes).toHaveLength(2);
+    expect(result.current.session.name).toBe('Shared graph');
+    expect(result.current.session.id).not.toBe('id-from-the-file');
+    expect(result.current.session.isSaved).toBe(false);
+    expect(result.current.session.status).toBe('unsaved');
+  });
+
+  it('shows a message from elsewhere in the problem banner', () => {
+    const { result } = setup();
+    act(() => result.current.session.reportProblem('Could not import "notes.txt"'));
+    expect(result.current.session.problem).toBe('Could not import "notes.txt"');
+
+    act(() => result.current.session.dismissProblem());
+    expect(result.current.session.problem).toBeNull();
+  });
+
+  it('describes the graph as it is on screen, unsaved changes included', () => {
+    const { result } = setup();
+    act(() => result.current.graph.addNode(10, 20));
+    act(() => result.current.session.setName('  On screen  '));
+
+    const snapshot = result.current.session.snapshot();
+
+    expect(snapshot.name).toBe('On screen');
+    expect(snapshot.id).toBe(result.current.session.id);
+    expect(snapshot.graph.nodes).toHaveLength(1);
+  });
 });

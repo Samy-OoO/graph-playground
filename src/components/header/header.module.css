@@ -86,14 +86,16 @@
 
 .item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: 6px;
   align-items: stretch;
 }
 
 .openButton {
   display: grid;
-  gap: 2px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
   min-width: 0;
   padding: 8px 10px;
   color: var(--text-soft);
@@ -114,6 +116,18 @@
   cursor: default;
 }
 
+.thumbnail {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+}
+
+.itemText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 .itemName {
   overflow: hidden;
   font-size: 13px;
@@ -125,4 +139,12 @@
 .itemMeta {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }

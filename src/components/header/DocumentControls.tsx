@@ -1,4 +1,4 @@
-import { FilePlus, RotateCcw, Save } from "lucide-react";
+import { Copy, FilePlus, RotateCcw, Save } from "lucide-react";
 import type { DocumentSession } from "../../hooks/useDocumentSession";
 import type { UnsavedGuard } from "../../hooks/useUnsavedGuard";
 import { LIMITS } from "../../persistence/limits";
@@ -7,6 +7,8 @@ import styles from './header.module.css';
 import { describeStatus } from "./documentStatus";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { useState } from "react";
+import { copyName } from "../../persistence/session";
+import { NameDialog } from "../NameDialog";
 
 interface DocumentControlsProps {
     session: DocumentSession;
@@ -15,6 +17,7 @@ interface DocumentControlsProps {
 
 export function DocumentControls({ session, guard }: DocumentControlsProps) {
     const [confirmingRevert, setConfirmingRevert] = useState(false);
+    const [namingCopy, setNamingCopy] = useState(false);
 
     const canSave = session.status !== 'saving' && (session.dirty || session.status === 'error');
 
@@ -37,6 +40,9 @@ export function DocumentControls({ session, guard }: DocumentControlsProps) {
                 <Button variant="primary" icon={Save} disabled={!canSave} onClick={() => void session.save()}>
                     Save
                 </Button>
+                <Button icon={Copy} disabled={session.status === 'saving'} onClick={() => setNamingCopy(true)}>
+                    Save a copy
+                </Button>
                 <Button icon={RotateCcw} disabled={!session.dirty} onClick={() => setConfirmingRevert(true)}>
                     Revert
                 </Button>
@@ -44,6 +50,21 @@ export function DocumentControls({ session, guard }: DocumentControlsProps) {
                     New graph
                 </Button>
             </div>
+
+            <NameDialog
+                open={namingCopy}
+                title="Save a copy"
+                label= "Name for the copy"
+                initialName={copyName(session.name)}
+                submitLabel="Save copy"
+                onCancel={() => setNamingCopy(false)}
+                onSubmit={(name) => {
+                    setNamingCopy(false);
+                    void session.saveAs(name);
+                }}
+            >
+                The copy gets everything you see now, including unsaved changes. The original stays as it was last saved.
+            </NameDialog>
 
             <ConfirmDialog
                 open={confirmingRevert}

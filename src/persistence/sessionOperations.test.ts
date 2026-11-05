@@ -7,7 +7,9 @@ import { DEFAULT_GRAPH_NAME } from './session';
 import {
   applyDraft,
   autosaveDraft,
+  buildDocument,
   openedFromDocument,
+  openedFromImport,
   openGraph,
   recoverFromDraft,
   revertGraph,
@@ -266,5 +268,38 @@ describe('autosaveDraft', () => {
     const { info } = startNewGraph('new1', nineAm);
     await autosaveDraft(stores, info, { name: '   ', graph: twoNodes }, tenAm);
     expect((await stores.drafts.get('new1'))?.document.name).toBe(DEFAULT_GRAPH_NAME);
+  });
+});
+
+describe('openedFromImport', () => {
+  const fromFile = createDocument(twoNodes, 'Shared graph', 'id-from-the-file', nineAm);
+
+  it('keeps the name and the graph, but gives it a brand new id', () => {
+    const result = openedFromImport(fromFile, 'fresh-id', tenAm);
+    expect(result.info).toEqual({
+      id: 'fresh-id',
+      name: 'Shared graph',
+      createdAt: '2026-10-31T10:00:00.000Z',
+      saved: null,
+    });
+    expect(result.graph).toEqual(twoNodes);
+  });
+
+  it('never reuses the id that was in the file', () => {
+    expect(openedFromImport(fromFile).info.id).not.toBe('id-from-the-file');
+  });
+});
+
+describe('buildDocument', () => {
+  it('describes the working copy, keeping the id and creation time of the open graph', () => {
+    const { info } = startNewGraph('new1', nineAm);
+    const doc = buildDocument(info, { name: '  My graph  ', graph: movedNodes }, tenAm);
+    expect(doc).toMatchObject({
+      id: 'new1',
+      name: 'My graph',
+      createdAt: '2026-10-31T09:00:00.000Z',
+      updatedAt: '2026-10-31T10:00:00.000Z',
+    });
+    expect(doc.graph.nodes[0].x).toBe(99);
   });
 });

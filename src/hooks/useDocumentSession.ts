@@ -1,5 +1,18 @@
 import { useCallback, useState } from "react";
-import { applyDraft, openGraph, revertGraph, saveGraph, saveGraphAs, startNewGraph, type OpenedGraph, type PendingDraft, type SessionInfo } from "../persistence/sessionOperations";
+import type { GraphDocument } from '../persistence/schema';
+import { 
+    applyDraft, 
+    buildDocument, 
+    openedFromImport, 
+    openGraph, 
+    revertGraph, 
+    saveGraph, 
+    saveGraphAs, 
+    startNewGraph, 
+    type OpenedGraph, 
+    type PendingDraft, 
+    type SessionInfo 
+} from "../persistence/sessionOperations";
 import { useStorage } from "../persistence/useStorage";
 import type { GraphApi } from "./useGraph";
 import { getSaveStatus, hasUnsavedChanges, type SaveActivity } from "../persistence/session";
@@ -154,6 +167,23 @@ export function useDocumentSession(graph: GraphApi, { autosaveDelayMs = AUTOSAVE
 
     const dismissProblem = useCallback(() => setProblem(null), []);
 
+    // Lets other parts of the page (like file import) show a message in the problem banner.
+    const reportProblem = useCallback((message: string) => setProblem(message), []);
+
+    // Makes a graph from an imported file the open graph. It is new and not saved until the user saves.
+    const importDocument = useCallback(
+        (document: GraphDocument) => {
+            load(openedFromImport(document));
+            setPending(null);
+        },
+        [load],
+    );
+
+    // What saving would write right now, including unsaved changes. Used for exporting.
+    const snapshot = useCallback(
+        (): GraphDocument => buildDocument(info, { name: info.name, graph: graph.data }),
+        [info, graph.data],
+    );
 
     return {
         id: info.id,
@@ -175,6 +205,9 @@ export function useDocumentSession(graph: GraphApi, { autosaveDelayMs = AUTOSAVE
         restoreDraft,
         discardDraft,
         dismissProblem,
+        reportProblem, 
+        importDocument, 
+        snapshot, 
     };
 }
 
