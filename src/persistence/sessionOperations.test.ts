@@ -8,6 +8,7 @@ import {
   applyDraft,
   autosaveDraft,
   buildDocument,
+  findRecoverableDrafts,
   openedFromDocument,
   openedFromImport,
   openGraph,
@@ -302,4 +303,51 @@ describe('buildDocument', () => {
     });
     expect(doc.graph.nodes[0].x).toBe(99);
   });
+
+  describe('findRecoverableDrafts', () => {
+  const blank = { directed: true, weighted: false, nodes: [], edges: [] };
+
+  it('finds unsaved graphs that have content, newest first', async () => {
+    const stores = freshStores();
+    await stores.drafts.save(createDraft(createDocument(twoNodes, 'Older', 'a', nineAm), null, nineAm));
+    await stores.drafts.save(createDraft(createDocument(twoNodes, 'Newer', 'b', nineAm), null, tenAm));
+
+    const found = await findRecoverableDrafts(stores);
+
+    expect(found.map((draft) => draft.document.name)).toEqual(['Newer', 'Older']);
+  });
+
+  it('leaves out drafts of saved graphs, which are offered when that graph is opened', async () => {
+    const stores = freshStores();
+    const saved = createDocument(twoNodes, 'Saved one', 'd1', nineAm);
+    await stores.repository.save(saved);
+    await stores.drafts.save(createDraft(updateDocument(saved, movedNodes, tenAm), saved.updatedAt));
+
+    expect(await findRecoverableDrafts(stores)).toEqual([]);
+    expect(await stores.drafts.get('d1')).not.toBeNull(); // untouched
+  });
+
+  it('quietly removes the draft of a blank graph that was never saved', async () => {
+    const stores = freshStores();
+    await stores.drafts.save(createDraft(createDocument(blank, DEFAULT_GRAPH_NAME, 'empty', nineAm), null));
+
+    expect(await findRecoverableDrafts(stores)).toEqual([]);
+    expect(await stores.drafts.get('empty')).toBeNull();
+  });
+
+  it('does not treat a saved graph that cannot be read as an unsaved one', async () => {
+    const stores = freshStores();
+    await stores.drafts.save(createDraft(createDocument(twoNodes, 'Mystery', 'd1', nineAm), null));
+    stores.repository.get = async () => {
+      throw new Error('damaged');
+    };
+
+    expect(await findRecoverableDrafts(stores)).toEqual([]);
+    expect(await stores.drafts.get('d1')).not.toBeNull();
+  });
+
+  it('finds nothing when there are no drafts', async () => {
+    expect(await findRecoverableDrafts(freshStores())).toEqual([]);
+  });
+});
 });

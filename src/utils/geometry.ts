@@ -3,7 +3,7 @@ import type { Point } from '../types/graph';
 import { clamp } from './math';
 
 /** Gap between an arrow tip and the rim of the node it points at. */
-const ARROW_GAP = 2;
+const ARROW_GAP = 0;
 /** Distance of a weight label from the edge. */
 const LABEL_OFFSET = 12;
 

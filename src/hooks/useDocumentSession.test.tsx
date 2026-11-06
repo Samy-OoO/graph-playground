@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, renderHook } from '@testing-library/react';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createDocument, updateDocument } from '../persistence/convert';
@@ -26,9 +26,9 @@ const movedNodes = { ...twoNodes, nodes: [{ ...twoNodes.nodes[0], x: 99 }, twoNo
 const nineAm = new Date('2026-10-31T09:00:00.000Z');
 const tenAm = new Date('2026-10-31T10:00:00.000Z');
 
-function setup() {
-  const repository = new MemoryRepository();
-  const drafts = new MemoryDraftStore();
+function setup(existing?: { repository: MemoryRepository; drafts: MemoryDraftStore }) {
+  const repository = existing?.repository ?? new MemoryRepository();
+  const drafts = existing?.drafts ?? new MemoryDraftStore();
   const storage = { repository, drafts, persistent: false };
 
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -294,5 +294,68 @@ describe('useDocumentSession', () => {
     expect(snapshot.name).toBe('On screen');
     expect(snapshot.id).toBe(result.current.session.id);
     expect(snapshot.graph.nodes).toHaveLength(1);
+  });
+
+    describe('unsaved graphs from an earlier visit', () => {
+    function leftOver() {
+      const repository = new MemoryRepository();
+      const drafts = new MemoryDraftStore();
+      return { repository, drafts };
+    }
+
+    it('offers a never-saved graph found when the app starts, and recovers it on request', async () => {
+      const stores = leftOver();
+      await stores.drafts.save(createDraft(createDocument(twoNodes, 'Lost work', 'old1', nineAm), null, tenAm));
+      const { result } = setup(stores);
+
+      await waitFor(() => expect(result.current.session.recoverableGraph).not.toBeNull());
+      expect(result.current.session.recoverableGraph?.document.name).toBe('Lost work');
+      expect(result.current.graph.nodes).toHaveLength(0); // nothing changes until the user says so
+
+      act(() => result.current.session.recover(result.current.session.recoverableGraph!));
+
+      expect(result.current.session.id).toBe('old1');
+      expect(result.current.session.name).toBe('Lost work');
+      expect(result.current.graph.nodes).toHaveLength(2);
+      expect(result.current.session.isSaved).toBe(false);
+      expect(result.current.session.status).toBe('unsaved');
+      expect(result.current.session.recoverableGraph).toBeNull();
+    });
+
+    it('can throw it away', async () => {
+      const stores = leftOver();
+      await stores.drafts.save(createDraft(createDocument(twoNodes, 'Lost work', 'old1', nineAm), null, tenAm));
+      const { result } = setup(stores);
+      await waitFor(() => expect(result.current.session.recoverableGraph).not.toBeNull());
+
+      await act(async () => {
+        await result.current.session.discardRecoverable(result.current.session.recoverableGraph!);
+      });
+
+      expect(result.current.session.recoverableGraph).toBeNull();
+      expect(await stores.drafts.get('old1')).toBeNull();
+    });
+
+    it('offers them one at a time, newest first, and says how many there are', async () => {
+      const stores = leftOver();
+      await stores.drafts.save(createDraft(createDocument(twoNodes, 'First', 'a', nineAm), null, nineAm));
+      await stores.drafts.save(createDraft(createDocument(twoNodes, 'Second', 'b', nineAm), null, tenAm));
+      const { result } = setup(stores);
+      await waitFor(() => expect(result.current.session.recoverableCount).toBe(2));
+
+      expect(result.current.session.recoverableGraph?.document.name).toBe('Second');
+      await act(async () => {
+        await result.current.session.discardRecoverable(result.current.session.recoverableGraph!);
+      });
+      expect(result.current.session.recoverableGraph?.document.name).toBe('First');
+      expect(result.current.session.recoverableCount).toBe(1);
+    });
+
+    it('offers nothing when there is nothing left over', async () => {
+      const { result } = setup(leftOver());
+      await act(async () => {});
+      expect(result.current.session.recoverableGraph).toBeNull();
+      expect(result.current.session.recoverableCount).toBe(0);
+    });
   });
 });

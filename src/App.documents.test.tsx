@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import './test/dialogPolyfill';
@@ -28,9 +28,14 @@ const twoNodes = {
 };
 const movedNodes = { ...twoNodes, nodes: [{ ...twoNodes.nodes[0], x: 400 }, twoNodes.nodes[1]] };
 
-function renderApp(persistent = true) {
-  const repository = new MemoryRepository();
-  const drafts = new MemoryDraftStore();
+function renderApp(
+  persistent = true,
+  stores: { repository: MemoryRepository; drafts: MemoryDraftStore } = {
+    repository: new MemoryRepository(),
+    drafts: new MemoryDraftStore(),
+  },
+) {
+  const { repository, drafts } = stores;
   const view = render(
     <StorageProvider storage={{ repository, drafts, persistent }}>
       <App />
@@ -424,5 +429,57 @@ describe('import and export', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Discard changes' }));
     expect(await screen.findByText('2 nodes, 1 edge')).toBeTruthy();
     expect(nameField().value).toBe('Shared graph');
+  });
+});
+
+describe('an unsaved graph from an earlier visit', () => {
+  async function appWithLeftOverGraph() {
+    const stores = { repository: new MemoryRepository(), drafts: new MemoryDraftStore() };
+    const lost = createDocument(twoNodes, 'Lost work', 'old1', new Date('2026-10-31T09:00:00.000Z'));
+    await stores.drafts.save(createDraft(lost, null, new Date('2026-10-31T09:30:00.000Z')));
+    return { ...renderApp(true, stores), stores };
+  }
+
+  it('is offered when the app opens, and recovering it brings the graph back unsaved', async () => {
+    const { user } = await appWithLeftOverGraph();
+
+    const notice = await screen.findByRole('group', { name: 'Unsaved graph found' });
+    expect(within(notice).getByText(/“Lost work”/)).toBeTruthy();
+    expect(within(notice).getByText(/2 nodes, 1 edge/)).toBeTruthy();
+
+    await user.click(within(notice).getByRole('button', { name: 'Recover it' }));
+
+    expect(await screen.findByText('2 nodes, 1 edge')).toBeTruthy();
+    expect(nameField().value).toBe('Lost work');
+    expect(screen.getByText('Unsaved changes')).toBeTruthy();
+    expect(screen.queryByRole('group', { name: 'Unsaved graph found' })).toBeNull();
+  });
+
+  it('can be thrown away', async () => {
+    const { user, stores } = await appWithLeftOverGraph();
+
+    const notice = await screen.findByRole('group', { name: 'Unsaved graph found' });
+    await user.click(within(notice).getByRole('button', { name: 'Discard it' }));
+
+    expect(screen.queryByRole('group', { name: 'Unsaved graph found' })).toBeNull();
+    expect(await stores.drafts.get('old1')).toBeNull();
+  });
+
+  it('asks about unsaved changes first if you have already started something new', async () => {
+    const { user } = await appWithLeftOverGraph();
+    await screen.findByRole('group', { name: 'Unsaved graph found' });
+    await user.click(button('Load sample'));
+
+    await user.click(button('Recover it'));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Unsaved changes')).toBeTruthy();
+    await user.click(within(dialog).getByRole('button', { name: 'Discard changes' }));
+    await waitFor(() => expect(nameField().value).toBe('Lost work'));
+  });
+
+  it('is not mentioned when nothing was left over', () => {
+    renderApp();
+    expect(screen.queryByRole('group', { name: 'Unsaved graph found' })).toBeNull();
   });
 });

@@ -31,7 +31,7 @@ export default function App() {
     <main className={styles.app}>
       <AppHeader session={session} guard={guard}/>
 
-      <SessionNotices session={session} />
+      <SessionNotices session={session} guard={guard} />
       <LimitNotice nodeCount={graph.nodes.length} edgeCount={graph.edges.length} />
 
       <div className={styles.workspace}>

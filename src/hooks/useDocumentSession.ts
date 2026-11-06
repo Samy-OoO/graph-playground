@@ -1,10 +1,13 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import type { GraphDocument } from '../persistence/schema';
+import type { Draft } from '../persistence/draft';
 import { 
     applyDraft, 
     buildDocument, 
+    findRecoverableDrafts, 
     openedFromImport, 
     openGraph, 
+    recoverFromDraft, 
     revertGraph, 
     saveGraph, 
     saveGraphAs, 
@@ -35,6 +38,8 @@ export function useDocumentSession(graph: GraphApi, { autosaveDelayMs = AUTOSAVE
     const [activity, setActivity] = useState<SaveActivity>('idle');
     const [problem, setProblem] = useState<string | null>(null);
     const [pending, setPending] = useState<PendingDraft | null>(null);
+      // Unsaved graphs left over from an earlier visit, found once when the app starts.
+    const [recoverable, setRecoverable] = useState<Draft[]>([]);
     // Goes up whenever a save changes what is stored, so lists of saved graphs know to reload.
     const [libraryRevision, setLibraryRevision] = useState(0);
 
@@ -49,6 +54,16 @@ export function useDocumentSession(graph: GraphApi, { autosaveDelayMs = AUTOSAVE
         enabled: pending === null && activity !== 'saving',
         delayMs: autosaveDelayMs,
     });
+
+    useEffect(() => {
+        let cancelled = false;
+        findRecoverableDrafts(storage)
+            .then((found) => {
+                if (!cancelled) setRecoverable(found);
+            })
+            .catch((error: unknown) => console.warn('Could not look for unsaved graphs from an earlier visit:', error));
+        return () => { cancelled = true; };
+    }, [storage]);
 
     // Puts a graph into the editor and makes it the open one.
     const load = useCallback(
@@ -167,6 +182,30 @@ export function useDocumentSession(graph: GraphApi, { autosaveDelayMs = AUTOSAVE
 
     const dismissProblem = useCallback(() => setProblem(null), []);
 
+    // The user chose to bring back an unsaved graph from an earlier visit.
+    const recover = useCallback(
+        (draft: Draft) => {
+            load(recoverFromDraft(draft));
+            setPending(null);
+            setRecoverable((list) => list.filter((item) => item.document.id !== draft.document.id));
+        },
+        [load],
+    );
+
+    // The user chose to throw away an unsaved graph from an earlier visit.
+    const discardRecoverable = useCallback(
+        async (draft: Draft): Promise<boolean> => {
+            try {
+                await storage.drafts.delete(draft.document.id);
+                setRecoverable((list) => list.filter((item) => item.document.id !== draft.document.id));
+                return true;
+            } catch (error) {
+                setProblem(describeProblem(error));
+                return false;
+            }
+        }, [storage],
+    );
+
     // Lets other parts of the page (like file import) show a message in the problem banner.
     const reportProblem = useCallback((message: string) => setProblem(message), []);
 
@@ -194,6 +233,8 @@ export function useDocumentSession(graph: GraphApi, { autosaveDelayMs = AUTOSAVE
         problem,
         pending,
         draftSavedAt,
+        recoverableGraph: recoverable[0] ?? null,
+        recoverableCount: recoverable.length,
         libraryRevision,
         persistent: storage.persistent,
         setName,
@@ -206,6 +247,8 @@ export function useDocumentSession(graph: GraphApi, { autosaveDelayMs = AUTOSAVE
         discardDraft,
         dismissProblem,
         reportProblem, 
+        recover, 
+        discardRecoverable, 
         importDocument, 
         snapshot, 
     };

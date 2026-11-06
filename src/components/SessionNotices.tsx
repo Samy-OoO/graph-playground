@@ -1,14 +1,17 @@
 import type { DocumentSession } from '../hooks/useDocumentSession';
+import type { UnsavedGuard } from '../hooks/useUnsavedGuard';
+import { pluralize } from '../utils/math';
 import styles from './SessionNotices.module.css';
 import { Button } from './ui/Button';
 
 interface SessionNoticesProps {
     session: DocumentSession;
+    guard: UnsavedGuard;
 }
 
 
-export function SessionNotices({ session }: SessionNoticesProps) {
-    const { pending } = session;
+export function SessionNotices({ session, guard }: SessionNoticesProps) {
+    const { pending, recoverableGraph } = session;
 
     return (
         <>
@@ -22,6 +25,23 @@ export function SessionNotices({ session }: SessionNoticesProps) {
                 <div className={styles.notice} data-tone="error" role="alert">
                     <span>{session.problem}</span>
                     <Button onClick={session.dismissProblem}>Dismiss</Button>
+                </div>
+            )}
+
+            {recoverableGraph && (
+                <div className={styles.notice} data-tone="warning" role="group" aria-label="Unsaved graph found">
+                    <span>
+                        You have an unsaved graph from an earlier visit: “{recoverableGraph.document.name}” (
+                            {pluralize(recoverableGraph.document.graph.nodes.length, 'node')},{' '}
+                            {pluralize(recoverableGraph.document.graph.edges.length, 'edge')}.
+                            {session.recoverableCount > 1 && ` ${session.recoverableCount - 1} more after this one.`})
+                    </span>
+                    <div className={styles.actions}>
+                        <Button variant="primary" onClick={() => guard.run(() => session.recover(recoverableGraph))}>
+                            Recover it
+                        </Button>
+                        <Button onClick={() => void session.discardRecoverable(recoverableGraph)}>Discard it</Button>
+                    </div>
                 </div>
             )}
 

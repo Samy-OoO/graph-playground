@@ -172,3 +172,31 @@ export async function autosaveDraft(
     await stores.drafts.save(createDraft(document, info.saved?.updatedAt ?? null, now));
     return 'written';
 }
+
+/**
+ * Drafts of graphs that were never saved, left over from an earlier visit (for example after the
+ * browser was closed or crashed), newest first. Drafts of saved graphs are offered when that
+ * graph is opened instead.
+ */
+
+export async function findRecoverableDrafts(stores: Stores): Promise<Draft[]> {
+    const found: Draft[] = [];
+    for (const draft of await stores.drafts.list()) {
+        const id = draft.document.id;
+
+        let saved: GraphDocument | null;
+        try {
+            saved = await stores.repository.get(id);
+        } catch {
+            continue;
+        }
+        if (saved !== null) continue;
+
+        if (classifyDraft(draft, null) === 'restore') {
+            found.push(draft);
+        } else {
+            await stores.drafts.delete(id); // A blank graph that was never saved is not worth keeping
+        }
+    }
+    return found;
+}
