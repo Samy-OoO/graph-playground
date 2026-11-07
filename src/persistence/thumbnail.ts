@@ -6,10 +6,10 @@ const PADDING = 7;
 const MAX_EDGES_DRAWN = 300;
 
 // Same colors as the editor.
-const BACKGROUND = '#0b1020';
-const EDGE_COLOR = '#6489bf';
-const NODE_FILL = '#1d4ed8';
-const NODE_STROKE = '#60a5fa';
+const BACKGROUND = '#050505';
+const EDGE_COLOR = '#636670';
+const NODE_FILL = '#050505';
+const NODE_STROKE = '#9aa0aa';
 
 const round = (value: number) => Math.round(value * 10) / 10;
 

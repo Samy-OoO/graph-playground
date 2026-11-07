@@ -1,20 +1,42 @@
 .header {
   position: relative;
   z-index: 10;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+/* The bar itself spans the whole window; its contents line up with the page below it. */
+.inner {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 20px;
   align-items: center;
-  padding: 12px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 10px 32px;
+}
+
+@media (max-width: 650px) {
+  .inner {
+    padding: 10px 16px;
+  }
 }
 
 .brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.mark {
+  display: flex;
+  color: var(--accent);
+}
+
+.brandText {
   display: grid;
   gap: 2px;
-  flex: 0 0 auto;
 }
 
 .title {

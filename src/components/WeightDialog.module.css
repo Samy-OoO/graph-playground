@@ -8,7 +8,7 @@
 }
 
 .dialog::backdrop {
-  background: rgba(5, 8, 18, 0.65);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .form {
@@ -33,7 +33,7 @@
 }
 
 .input[aria-invalid='true'] {
-  border-color: #ef4444;
+  border-color: var(--danger);
 }
 
 .error {

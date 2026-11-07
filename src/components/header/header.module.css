@@ -18,6 +18,9 @@
 }
 
 .status {
+  display: flex;
+  gap: 7px;
+  align-items: center;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -147,4 +150,43 @@
   gap: 8px;
   padding-top: 10px;
   border-top: 1px solid var(--border);
+}
+
+
+
+/* The dot carries the colour; the words beside it say the same thing, so colour is never the only clue. */
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--text-muted);
+  border-radius: 50%;
+}
+
+.dot[data-tone='saved'] {
+  background: var(--success);
+}
+
+.dot[data-tone='unsaved'] {
+  background: var(--warning);
+}
+
+.dot[data-tone='saving'] {
+  background: var(--accent);
+}
+
+.dot[data-tone='error'] {
+  background: var(--danger);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dot[data-tone='saving'] {
+    animation: pulse 1s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
 }

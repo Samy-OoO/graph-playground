@@ -18,7 +18,7 @@
 
 .notice[data-tone='error'] {
   color: var(--danger-text);
-  border-color: #5b343b;
+  border-color: var(--danger-border);
 }
 
 .actions {

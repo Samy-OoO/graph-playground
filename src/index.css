@@ -6,21 +6,30 @@
   --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* Surfaces and text */
-  --bg: #0b1020;
-  --surface: #111827;
-  --surface-raised: #1f2937;
-  --surface-hover: #293548;
-  --border: #263247;
-  --border-strong: #374151;
-  --text: #e5e7eb;
-  --text-soft: #cbd5e1;
-  --text-muted: #9ca3af;
+  --bg: #050505;
+  --surface: #0c0c0d;
+  --surface-raised: #141416;
+  --surface-hover: #1c1c20;
+  --border: #1f1f23;
+  --border-strong: #2c2c32;
+  --text: #ededed;
+  --text-soft: #c4c4cc;
+  --text-muted: #8b8b94;
 
   /* Interactive */
-  --accent: #3b82f6;
-  --accent-strong: #1d4ed8;
-  --accent-text: #93c5fd;
+  --accent: var(--neon);
+  --accent-strong: #0b4a5e;
+  --accent-text: #7ddcff;
   --danger-text: #fca5a5;
+  --accent-hover: #4dd8ff;
+  --on-accent: #001018; /* text on a filled accent button */
+  --danger: #ef4444;
+  --danger-surface: #1f1214;
+  --danger-surface-hover: #2a1518;
+  --danger-border: #4a2328;
+  --success: #4ade80;
+  --success-surface: rgba(34, 197, 94, 0.15);
+  --success-border: #86efac;
   --warning: #fbbf24;
 
   /* The one loud colour: the active path of a running algorithm */
@@ -28,11 +37,11 @@
   --neon-glow: rgba(0, 200, 255, 0.55);
 
   /* Node states */
-  --node-default-fill: #1d4ed8;
-  --node-default-stroke: #60a5fa;
-  --node-queued-fill: #223152;
+  --node-default-fill: #050505;
+  --node-default-stroke: #6b7280;
+  --node-queued-fill: #0c1a33;
   --node-queued-stroke: #60a5fa;
-  --node-onpath-fill: #0e2a4d;
+  --node-onpath-fill: #062a38;
   --node-current-fill: #f59e0b;
   --node-current-stroke: #fcd34d;
   --node-current-text: #1c1100;
@@ -43,7 +52,7 @@
   --node-edge-source-fill: #d97706;
 
   /* Edge states */
-  --edge-default: #6489bf;
+  --edge-default: #636670;
   --edge-active: var(--neon);
   --edge-settled: #22c55e;
   --edge-skipped: #fb923c;

@@ -2,7 +2,6 @@ import type { DocumentSession } from "../../hooks/useDocumentSession";
 
 type StatusInfo = Pick<DocumentSession, 'status' | 'isSaved' | 'draftSavedAt'>;
 
-
 function formatTime(date: Date): string {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
@@ -18,4 +17,12 @@ export function describeStatus({ status, isSaved, draftSavedAt }: StatusInfo): s
         case 'saved':
             return isSaved ? 'All changes saved' : 'New graph';
     }
+}
+
+export type StatusTone = 'saved' | 'new' | 'unsaved' | 'saving' | 'error';
+
+// Which colour the little dot beside the status words takes.
+export function statusTone({ status, isSaved }: Pick<DocumentSession, 'status' | 'isSaved'>): StatusTone {
+  if (status === 'saved') return isSaved ? 'saved' : 'new';
+  return status;
 }

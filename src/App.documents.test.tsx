@@ -58,6 +58,38 @@ describe('the title bar', () => {
     expect((button('Save') as HTMLButtonElement).disabled).toBe(true);
   });
 
+    it('sits above the page as a bar of its own, not inside the main area', () => {
+    renderApp();
+    const title = screen.getByRole('heading', { name: 'Graph Playground' });
+    expect(title.closest('header')).not.toBeNull();
+    expect(screen.getByRole('main').contains(title)).toBe(false);
+  });
+
+  it('shows a coloured dot that follows whether the graph is saved', async () => {
+    const { user } = renderApp();
+    const dot = () => screen.getByTestId('status-dot').getAttribute('data-tone');
+    expect(dot()).toBe('new');
+
+    await user.click(button('Load sample'));
+    expect(dot()).toBe('unsaved');
+
+    await user.click(button('Save'));
+    await screen.findByText('All changes saved');
+    expect(dot()).toBe('saved');
+  });
+
+  it('shows the dot in the error colour when saving fails', async () => {
+    const { user, repository } = renderApp();
+    repository.save = async () => {
+      throw new Error('This graph cannot be saved: nope');
+    };
+    await user.click(button('Load sample'));
+    await user.click(button('Save'));
+
+    await screen.findByText('Could not save');
+    expect(screen.getByTestId('status-dot').getAttribute('data-tone')).toBe('error');
+  });
+
   it('keeps the saved graphs hidden behind an icon until it is opened', async () => {
     const { user, repository } = renderApp();
     await repository.save(createDocument(twoNodes, 'Stored graph', 'd1', new Date('2026-10-31T09:00:00.000Z')));

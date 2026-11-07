@@ -4,7 +4,7 @@ import type { UnsavedGuard } from "../../hooks/useUnsavedGuard";
 import { LIMITS } from "../../persistence/limits";
 import { Button } from "../ui/Button";
 import styles from './header.module.css';
-import { describeStatus } from "./documentStatus";
+import { describeStatus, statusTone } from "./documentStatus";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { useState } from "react";
 import { copyName } from "../../persistence/session";
@@ -33,6 +33,7 @@ export function DocumentControls({ session, guard }: DocumentControlsProps) {
             />
 
             <p className={styles.status} data-status={session.status} role="status">
+                <span className={styles.dot} data-tone={statusTone(session)} data-testid="status-dot" aria-hidden="true" />
                 {describeStatus(session)}
             </p>
 
