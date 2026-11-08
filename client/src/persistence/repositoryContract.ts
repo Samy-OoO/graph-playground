@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDocument } from './convert';
 import type { GraphRepository } from './repository';
-import type { GraphDocument } from './schema';
+import type { GraphDocument } from '@graph-playground/shared';
 
 function makeDocument(id: string, name: string, when: string): GraphDocument {
     return createDocument(

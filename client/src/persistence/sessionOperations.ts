@@ -2,7 +2,7 @@ import type { GraphData } from "../types/graph";
 import { createId } from "../utils/id";
 import { createDocument, documentToGraph } from "./convert";
 import { createDraft, type Draft } from "./draft";
-import type { GraphDocument } from "./schema";
+import type { GraphDocument } from "@graph-playground/shared";
 import { classifyDraft, DEFAULT_GRAPH_NAME, hasUnsavedChanges, normalizeName, type WorkingCopy } from "./session";
 import type { AppStorage } from "./storage";
 

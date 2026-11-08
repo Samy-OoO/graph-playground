@@ -1,6 +1,6 @@
-import { LIMITS } from './limits';
-import { parseDocumentText, type ParseResult } from './parse';
-import type { GraphDocument } from './schema';
+import { LIMITS } from '@graph-playground/shared';
+import { parseDocumentText, type ParseResult } from '@graph-playground/shared';
+import type { GraphDocument } from '@graph-playground/shared';
 
 // The text that goes into an exported file. Indented, so it is readable if someone opens it.
 export function serializeDocument(document: GraphDocument): string {

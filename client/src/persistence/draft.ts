@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { documentSchema, type GraphDocument } from './schema';
-import { describeIssues } from './parse';
+import { documentSchema, type GraphDocument } from '@graph-playground/shared';
+import { describeIssues } from '@graph-playground/shared';
 
 export const draftSchema = z.object({
     document: documentSchema,

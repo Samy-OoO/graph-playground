@@ -1,7 +1,7 @@
 import type { GraphRepository, GraphSummary } from './repository';
 import { toSummary } from './repository';
-import type { GraphDocument } from './schema';
-import { assertValidDocument, parseDocumentData } from './parse';
+import type { GraphDocument } from '@graph-playground/shared';
+import { assertValidDocument, parseDocumentData } from '@graph-playground/shared';
 import { GRAPHS_STORE, openGraphDB, type GraphDBConnection } from './database';
 
 export class IndexedDbRepository implements GraphRepository {

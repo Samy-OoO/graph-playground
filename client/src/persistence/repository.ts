@@ -1,4 +1,4 @@
-import type { GraphDocument } from './schema';
+import type { GraphDocument } from '@graph-playground/shared';
 import { renderThumbnail } from './thumbnail';
 
 // What the "My graphs" list needs to show a graph, without carrying the whole graph.

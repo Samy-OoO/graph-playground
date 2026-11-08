@@ -1,6 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Draft } from './draft';
-import type { GraphDocument } from './schema';
+import type { GraphDocument } from '@graph-playground/shared';
 
 export const DEFAULT_DB_NAME = 'graph-playground';
 export const DATABASE_VERSION = 2;

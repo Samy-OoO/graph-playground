@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { createDocument } from './convert';
+
 import { LIMITS } from './limits';
 import { parseDocumentData, parseDocumentText } from './parse';
 
 const emptyGraph = { directed: true, weighted: false, nodes: [], edges: [] };
-const validDocument = createDocument(emptyGraph, 'Test', 'doc-1', new Date('2026-10-31T09:00:00.000Z'));
+const validDocument = {
+  schemaVersion: 1,
+  id: 'doc-1',
+  name: 'Test',
+  createdAt: '2026-10-31T09:00:00.000Z',
+  updatedAt: '2026-10-31T09:00:00.000Z',
+  graph: emptyGraph,
+};
 
 describe('parseDocumentText', () => {
   it('accepts a valid file', () => {

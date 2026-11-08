@@ -1,7 +1,7 @@
 {
   "name": "graph-playground",
   "private": true,
-  "workspaces": ["client"],
+  "workspaces": ["client", "shared"],
   "scripts": {
     "dev": "npm run dev -w client",
     "build": "npm run build -w client",

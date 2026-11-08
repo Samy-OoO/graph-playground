@@ -3,7 +3,7 @@ import { graphReducer, initialGraphState } from '../hooks/graphReducer';
 import { createDocument, updateDocument } from './convert';
 import { createDraft } from './draft';
 import { classifyDraft, contentKey, DEFAULT_GRAPH_NAME, getSaveStatus, hasUnsavedChanges, normalizeName } from './session';
-import { LIMITS } from './limits';
+import { LIMITS } from '@graph-playground/shared';
 
 const nineAm = new Date('2026-10-31T09:00:00.000Z');
 const tenAm = new Date('2026-10-31T10:00:00.000Z');

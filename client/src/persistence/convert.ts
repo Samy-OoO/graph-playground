@@ -1,6 +1,6 @@
 import type { GraphData } from '../types/graph';
 import { createId } from '../utils/id';
-import { CURRENT_SCHEMA_VERSION, type GraphDocument } from './schema';
+import { CURRENT_SCHEMA_VERSION, type GraphDocument } from '@graph-playground/shared';
 
 /**
  * Copies only the fields that belong in a saved file. Anything else on the editor state

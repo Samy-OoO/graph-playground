@@ -1,8 +1,8 @@
 import type { GraphData } from "../types/graph";
 import { extractGraph } from "./convert";
 import type { Draft } from "./draft";
-import type { GraphDocument } from "./schema";
-import { LIMITS } from './limits';
+import type { GraphDocument } from "@graph-playground/shared";
+import { LIMITS } from '@graph-playground/shared';
 
 export const DEFAULT_GRAPH_NAME = 'Untitled graph';
 

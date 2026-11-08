@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDocument, updateDocument } from './convert';
 import { createDraft } from './draft';
 import { deleteGraph, duplicateGraph, renameGraph } from './libraryOperations';
-import { LIMITS } from './limits';
+import { LIMITS } from '@graph-playground/shared';
 import { MemoryDraftStore } from './memoryDraftStore';
 import { MemoryRepository } from './memoryRepository';
 import { copyName, DEFAULT_GRAPH_NAME } from './session';

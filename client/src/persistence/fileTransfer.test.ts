@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createDocument } from './convert';
 import { downloadText, fileNameFor, readGraphFile, serializeDocument } from './fileTransfer';
-import { LIMITS } from './limits';
+import { LIMITS } from '@graph-playground/shared';
 
 afterEach(() => {
   vi.restoreAllMocks();

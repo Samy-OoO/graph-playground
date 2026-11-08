@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import styles from './NameDialog.module.css';
-import { LIMITS } from "../persistence/limits";
+import { LIMITS } from "@graph-playground/shared";
 import { Button } from "./ui/Button";
 
 interface NameDialogProps {

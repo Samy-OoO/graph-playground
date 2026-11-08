@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { LIMITS } from '../persistence/limits';
+import { LIMITS } from '@graph-playground/shared';
 import { LimitNotice } from './LimitNotice';
 
 afterEach(cleanup);

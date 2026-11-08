@@ -1,4 +1,4 @@
-import { LIMITS } from '../persistence/limits';
+import { LIMITS } from '@graph-playground/shared';
 import styles from './SessionNotices.module.css';
 
 interface LimitNoticeProps {

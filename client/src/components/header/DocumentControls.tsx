@@ -1,7 +1,7 @@
 import { Copy, FilePlus, RotateCcw, Save } from "lucide-react";
 import type { DocumentSession } from "../../hooks/useDocumentSession";
 import type { UnsavedGuard } from "../../hooks/useUnsavedGuard";
-import { LIMITS } from "../../persistence/limits";
+import { LIMITS } from "@graph-playground/shared";
 import { Button } from "../ui/Button";
 import styles from './header.module.css';
 import { describeStatus, statusTone } from "./documentStatus";

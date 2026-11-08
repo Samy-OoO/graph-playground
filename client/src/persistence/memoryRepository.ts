@@ -1,7 +1,7 @@
 import type { GraphRepository, GraphSummary } from './repository';
 import { toSummary } from './repository';
-import type { GraphDocument } from './schema';
-import { assertValidDocument } from './parse';
+import type { GraphDocument } from '@graph-playground/shared';
+import { assertValidDocument } from '@graph-playground/shared';
 
 // Keeps graphs in memory only. Used by tests, and a handy stand-in before the real storage exists.
 export class MemoryRepository implements GraphRepository {

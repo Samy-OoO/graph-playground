@@ -1,6 +1,6 @@
 import { createId } from "../utils/id";
 import { createDocument } from "./convert";
-import type { GraphDocument } from "./schema";
+import type { GraphDocument } from "@graph-playground/shared";
 import { copyName, normalizeName } from "./session";
 import type { AppStorage } from "./storage";
 

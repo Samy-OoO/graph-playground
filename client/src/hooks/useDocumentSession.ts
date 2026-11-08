@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
-import type { GraphDocument } from '../persistence/schema';
+import type { GraphDocument } from '@graph-playground/shared';
 import type { Draft } from '../persistence/draft';
 import { 
     applyDraft, 

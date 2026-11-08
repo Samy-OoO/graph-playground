@@ -1,6 +1,6 @@
 import type { GraphEdge, GraphNode } from '../types/graph';
 import { canAddEdge, getNextNodeLabel } from '../utils/graph';
-import { LIMITS } from '../persistence/limits';
+import { LIMITS } from '@graph-playground/shared';
 
 
 export interface GraphState {

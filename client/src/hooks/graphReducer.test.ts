@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { graphReducer, initialGraphState } from './graphReducer';
 import type { GraphAction, GraphState } from './graphReducer';
-import { LIMITS } from '../persistence/limits';
+import { LIMITS } from '@graph-playground/shared';
 
 function run(actions: GraphAction[], from: GraphState = initialGraphState): GraphState {
   return actions.reduce(graphReducer, from);

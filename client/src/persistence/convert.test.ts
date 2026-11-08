@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { graphReducer, initialGraphState, type GraphState } from '../hooks/graphReducer';
 import { createDocument, documentToGraph, extractGraph, updateDocument } from './convert';
-import { documentSchema } from './schema';
+import { documentSchema } from '@graph-playground/shared';
 
 function buildState(): GraphState {
   let state = initialGraphState;
