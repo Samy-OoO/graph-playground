@@ -82,7 +82,7 @@ export const graphSchema = z.object({
             ctx.addIssue({
                 code: 'custom',
                 message: 'Every edge needs a weight because the graph is weighted',
-                path: ['edge', index, 'weight'],
+                path: ['edges', index, 'weight'],
             });
         }
 
@@ -115,3 +115,17 @@ export const documentSchema = z.object({
 });
 
 export type GraphDocument = z.infer<typeof documentSchema>;
+
+// What a client sends to create or save a graph. The server adds thr id, timestamps, and schema version itself.
+export const saveGraphSchema = z.object({
+    name: documentSchema.shape.name, 
+    graph: graphSchema, 
+});
+
+// Saving an existing graph also says which revision the client last saw, so the server can detect a conflict.
+export const updateGraphSchema = saveGraphSchema.extend({
+    revision: z.number().int().positive(), 
+});
+
+export type SaveGraphInput = z.infer<typeof saveGraphSchema>;
+export type UpdateGraphInput = z.infer<typeof updateGraphSchema>;
