@@ -5,6 +5,7 @@ import { IndexedDbRepository } from './indexedDbRepository';
 import { MemoryDraftStore } from './memoryDraftStore';
 import { MemoryRepository } from './memoryRepository';
 import { createStorage, getAppStorage } from './storage';
+import { ApiRepository } from './apiRepository';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -27,6 +28,23 @@ describe('createStorage', () => {
     expect(storage.persistent).toBe(false);
     expect(storage.repository).toBeInstanceOf(MemoryRepository);
     expect(storage.drafts).toBeInstanceOf(MemoryDraftStore);
+  });
+
+    it('keeps graphs on the server, and drafts in this browser, when asked to', async () => {
+    const storage = await createStorage('storage-test-server', { useServer: true });
+    expect(storage.repository).toBeInstanceOf(ApiRepository);
+    expect(storage.drafts).toBeInstanceOf(IndexedDbDraftStore);
+    expect(storage.persistent).toBe(true);
+  });
+
+  it('still uses the server for graphs when the browser has no IndexedDB', async () => {
+    vi.stubGlobal('indexedDB', undefined);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const storage = await createStorage('storage-test-server-nodb', { useServer: true });
+    expect(storage.repository).toBeInstanceOf(ApiRepository);
+    expect(storage.drafts).toBeInstanceOf(MemoryDraftStore);
+    expect(storage.persistent).toBe(true);
   });
 
   it('falls back to memory when opening the database fails', async () => {
