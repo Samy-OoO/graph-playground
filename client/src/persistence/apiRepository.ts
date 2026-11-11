@@ -4,6 +4,7 @@ import type { GraphDocument } from '@graph-playground/shared';
 import { ConflictError } from './conflictError';
 import type { GraphRepository, GraphSummary } from './repository';
 import { toSummary } from './repository';
+import { UnauthorizedError } from './unauthorizedError';
 
 // The server adds a revision to every graph it sends. Our document type does not have one, so read it separately.
 const revisionProbe = z.object({ revision: z.number().int().positive() });
@@ -25,24 +26,40 @@ async function describeFailure(response: Response): Promise<string> {
 export class ApiRepository implements GraphRepository {
     private readonly baseUrl: string;
     private readonly fetchFn: typeof fetch;
+    private readonly onUnauthorized: (() => void) | undefined;
 
     // The revision of each graph, as last seen from the server. Every save has to say which revision it started from.
     private readonly revisions = new Map<string, number>();
 
     // Tests pass a fake fetch. The default wraps the real one in an arrow function:
     // a browser's fetch throws "Illegal invocation" if it is called as a method of some other object.
-    constructor(baseUrl = '/api', fetchFn: typeof fetch = (input, init) => fetch(input, init)) {
+    // onUnauthorized is told when the server says nobody is signed in any more (the session ended mid-way),
+    // so the app can move to the signed-out state instead of failing quietly on every save.
+    constructor(
+        baseUrl = '/api',
+        fetchFn: typeof fetch = (input, init) => fetch(input, init),
+        onUnauthorized?: () => void,
+    ) {
         this.baseUrl = baseUrl;
         this.fetchFn = fetchFn;
+        this.onUnauthorized = onUnauthorized;
     }
 
     private async request(path: string, init?: RequestInit): Promise<Response> {
+        let response: Response;
         try {
             return await this.fetchFn(`${this.baseUrl}${path}`, init);
         } catch (error) {
             // fetch only throws when no answer came back at all: offline, server down, and so on.
             throw new Error('Could not reach the server. Check your connection and try again.', { cause: error });
         }
+
+        // Every route here needs a login, so a 401 always means the session has ended.
+        if (response.status === 401) {
+            this.onUnauthorized?.();
+            throw new UnauthorizedError();
+        }
+        return response;
     }
 
     // Turns what the server sent into a document, and remembers its revision for the next save.

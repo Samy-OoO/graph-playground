@@ -15,6 +15,13 @@
       "when": 1794215832351,
       "tag": "0001_graph_key_per_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794385780063,
+      "tag": "0002_sessions",
+      "breakpoints": true
     }
   ]
 }

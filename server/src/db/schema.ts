@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { primaryKey, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, primaryKey, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import type { GraphDocument } from '@graph-playground/shared';
 
 // Every timestamp is stored as an ISO text string, the same format the client already uses.
@@ -30,6 +30,20 @@ export const graphs = sqliteTable('graphs', {
 // Two users may each have a graph with the same id. The pair (owner, id) is what must be unique.
 // The key also doubles as an index on owner_id, so "list my graphs" stays fast.
 (table) => [primaryKey({ columns: [table.ownerId, table.id] })],
+);
+
+export const sessions = sqliteTable('sessions', {
+    // The SHA-256 fingerprint of the token that lives in the browser's cookie. The token itself is never stored,
+    // so someone who steals the database cannot sign in as anybody.
+    tokenHash: text('token-hash').primaryKey(), 
+    userId: text('user_id')
+        .notNull()
+        .references(() => users.id, { onDelete: 'cascade' }), 
+    createdAt: text('created_at').notNull(), 
+    expiresAt: text('expires_at').notNull(), 
+}, 
+// Looking up all sessions of one user (to sign them out everywhere, later) should not read the whole table.
+(table) => [index('session_user_id_idx').on(table.userId)], 
 );
 
 export type UserRow = typeof users.$inferSelect;
