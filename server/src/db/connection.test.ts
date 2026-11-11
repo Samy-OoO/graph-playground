@@ -26,13 +26,11 @@ describe('database', () => {
         const { db } = database;
         const [user] = db.insert(users).values({ email: 'a@b.c', passwordHash: 'x' }).returning().all();
 
-        const [saved] = db
-            .insert(graphs)
-            .values({ ownerId: user.id, name: 'Triangle', data: sampleGraph, schemaVersion: 1 })
-            .returning()
-            .all();
+        db.insert(graphs)
+            .values({ id: 'g1', ownerId: user.id, name: 'Triangle', data: sampleGraph, schemaVersion: 1 })
+            .run();
 
-        const found = db.select().from(graphs).where(eq(graphs.id, saved.id)).get();
+        const found = db.select().from(graphs).where(eq(graphs.id, 'g1')).get();
         expect(found?.data).toEqual(sampleGraph);
         expect(found?.revision).toBe(1);
         expect(found?.isPublic).toBe(false);
@@ -41,7 +39,7 @@ describe('database', () => {
     it('rejects a graph whose owner does not exist', () => {
         const { db } = database;
         expect(() =>
-            db.insert(graphs).values({ ownerId: 'nobody', name: 'x', data: sampleGraph, schemaVersion: 1 }).run(),
+            db.insert(graphs).values({ id: 'g1', ownerId: 'nobody', name: 'x', data: sampleGraph, schemaVersion: 1 }).run(),
         ).toThrow();
     });
 
@@ -54,10 +52,28 @@ describe('database', () => {
     it('deletes a user\'s graphs together with the user', () => {
         const { db } = database;
         const [user] = db.insert(users).values({ email: 'a@b.c', passwordHash: 'x' }).returning().all();
-        db.insert(graphs).values({ ownerId: user.id, name: 'x', data: sampleGraph, schemaVersion: 1 }).run();
+        db.insert(graphs).values({ id: 'g1', ownerId: user.id, name: 'x', data: sampleGraph, schemaVersion: 1 }).run();
 
         db.delete(users).where(eq(users.id, user.id)).run();
 
         expect(db.select().from(graphs).all()).toHaveLength(0);
+    });
+
+    it('allows the same graph id for two owners, but not twice for one owner', () => {
+        const { db } = database;
+        const [a, b] = db
+            .insert(users)
+            .values([
+                { email: 'a@b.c', passwordHash: 'x' },
+                { email: 'd@e.f', passwordHash: 'x' },
+            ])
+            .returning()
+            .all();
+        const row = { id: 'same', name: 'x', data: sampleGraph, schemaVersion: 1 };
+
+        db.insert(graphs).values({ ...row, ownerId: a.id }).run();
+        db.insert(graphs).values({ ...row, ownerId: b.id }).run();
+
+        expect(() => db.insert(graphs).values({ ...row, ownerId: a.id }).run()).toThrow();
     });
 });

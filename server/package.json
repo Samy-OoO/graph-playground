@@ -12,12 +12,16 @@
   },
   "dependencies": {
     "@graph-playground/shared": "*",
+    "argon2": "^0.45.2",
     "better-sqlite3": "^13.0.3",
+    "cookie-parser": "^1.4.7",
     "drizzle-orm": "^0.45.4",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.7.4"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/node": "^24.19.2",
     "@types/supertest": "^6.0.0",

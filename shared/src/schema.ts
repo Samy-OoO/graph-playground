@@ -120,12 +120,11 @@ export type GraphDocument = z.infer<typeof documentSchema>;
 export const saveGraphSchema = z.object({
     name: documentSchema.shape.name, 
     graph: graphSchema, 
-});
+    createdAt: documentSchema.shape.createdAt, 
+    updatedAt: documentSchema.shape.updatedAt, 
 
-// Saving an existing graph also says which revision the client last saw, so the server can detect a conflict.
-export const updateGraphSchema = saveGraphSchema.extend({
-    revision: z.number().int().positive(), 
+    // The revision the client last saw. 0 means "I believe this graph does not exist on the server yet".
+    revision: z.number().int().min(0),
 });
 
 export type SaveGraphInput = z.infer<typeof saveGraphSchema>;
-export type UpdateGraphInput = z.infer<typeof updateGraphSchema>;

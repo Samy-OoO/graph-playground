@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import type { Db } from "../db/connection";
 import { graphs, type GraphRow } from "../db/schema";
 import type { GraphRepository } from "./graphRepository";
-import type { GraphSummary, StoredGraph } from "./types";
+import type { StoredGraph } from "./types";
 import { CURRENT_SCHEMA_VERSION } from '@graph-playground/shared';
 
 function toStoredGraph(row: GraphRow): StoredGraph {
@@ -18,21 +18,8 @@ function toStoredGraph(row: GraphRow): StoredGraph {
 }
 
 
-function toSummary(row: GraphRow): GraphSummary {
-    return {
-        id: row.id,
-        name: row.name,
-        revision: row.revision, 
-        createdAt: row.createdAt, 
-        updatedAt: row.updatedAt, 
-        nodeCount: row.data.nodes.length,
-        edgeCount: row.data.edges.length, 
-    }
-}
-
-
 // The clock is a parameter so tests can control time instead of waiting for it.
-export function createGraphRepository(db: Db, clock: () => string = () => new Date().toISOString()): GraphRepository {
+export function createGraphRepository(db: Db): GraphRepository {
     async function get(ownerId: string, id: string) {
         const row = db
             .select()
@@ -51,50 +38,59 @@ export function createGraphRepository(db: Db, clock: () => string = () => new Da
                 .where(eq(graphs.ownerId, ownerId))
                 .orderBy(desc(graphs.updatedAt))
                 .all();
-            return rows.map(toSummary);
+            return rows.map(toStoredGraph);
         },
 
         get,
 
-        async create(ownerId, input) {
-            const timestamp = clock();
-            const [row] = db
-                .insert(graphs)
-                .values({
-                    ownerId, 
-                    name: input.name, 
-                    data: input.graph, 
-                    schemaVersion: CURRENT_SCHEMA_VERSION, 
-                    createdAt: timestamp,
-                    updatedAt: timestamp,
-                })
-                .returning()
-                .all();
-            return toStoredGraph(row);
-        },
 
-        async update(ownerId, id, input, expectedRevision) {
+        async save(ownerId, input, expectedRevision) {
+            if (expectedRevision === 0) {
+                // "This graph is new": insert it, unless this owner already has one with that id.
+                const [created] = db
+                    .insert(graphs)
+                    .values({
+                        id: input.id, 
+                        ownerId, 
+                        name: input.name, 
+                        data: input.graph, 
+                        schemaVersion: CURRENT_SCHEMA_VERSION, 
+                        createdAt: input.createdAt,
+                        updatedAt: input.updatedAt,
+                    })
+                    .onConflictDoNothing()
+                    .returning()
+                    .all();
+                if (created) return { ok: true, graph: toStoredGraph(created) };
+                    
+                // It already exists, so the caller was wrong about it being new.
+                const current = await get(ownerId, input.id);
+                if (!current) return { ok: false, reason: 'not_found' };
+                return { ok: false, reason: 'conflict', current };
+            }
+
+
             // The revision check is part of the UPDATE itself, so "check, then write" happens as one step
             // and two requests can never both pass the check.
-            const [row] = db
+            const [updated] = db
                 .update(graphs)
                 .set({
                     name: input.name, 
                     data: input.graph, 
                     schemaVersion: CURRENT_SCHEMA_VERSION, 
                     revision: sql`${graphs.revision} + 1`, 
-                    updatedAt: clock(), 
+                    updatedAt: input.updatedAt, 
                 })
-                .where(and(eq(graphs.id, id), eq(graphs.ownerId, ownerId), eq(graphs.revision, expectedRevision)))
+                .where(and(eq(graphs.id, input.id), eq(graphs.ownerId, ownerId), eq(graphs.revision, expectedRevision)))
                 .returning()
                 .all();
             
-                if (row) return { ok: true, graph: toStoredGraph(row) };
+            if (updated) return { ok: true, graph: toStoredGraph(updated) };
 
-                // Nothing was updated. Either the graph is not there, or it has moved on to a newer revision.
-                const current = await get(ownerId, id);
-                if (!current) return { ok: false, reason: 'not_found' };
-                return { ok: false, reason: 'conflict', current };
+            // Nothing was updated. Either the graph is not there, or it has moved on to a newer revision.
+            const current = await get(ownerId, input.id);
+            if (!current) return { ok: false, reason: 'not_found' };
+            return { ok: false, reason: 'conflict', current };
         },
 
         async delete(ownerId, id) {

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { primaryKey, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import type { GraphDocument } from '@graph-playground/shared';
 
 // Every timestamp is stored as an ISO text string, the same format the client already uses.
@@ -13,7 +13,8 @@ export const users = sqliteTable('users', {
 });
 
 export const graphs = sqliteTable('graphs', {
-    id: text('id').primaryKey().$defaultFn(() => randomUUID()),
+    // Chosen by the client, so it is only unique per owner (see the primary key below).
+    id: text('id').notNull(),
     ownerId: text('owner_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     //Only the nodes and edges live here. Name and timestamps are real columns so we can sort and list without opening the JSON.
@@ -26,8 +27,9 @@ export const graphs = sqliteTable('graphs', {
     createdAt: text('created_at').notNull().$defaultFn(now),
     updatedAt: text('updated_at').notNull().$defaultFn(now),
 }, 
-// "List my graphs" will filter by owner on every req, so give that lookup an index.
-(table) => [index('graphs_owner_id_idx').on(table.ownerId)],
+// Two users may each have a graph with the same id. The pair (owner, id) is what must be unique.
+// The key also doubles as an index on owner_id, so "list my graphs" stays fast.
+(table) => [primaryKey({ columns: [table.ownerId, table.id] })],
 );
 
 export type UserRow = typeof users.$inferSelect;
