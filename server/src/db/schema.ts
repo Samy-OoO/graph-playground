@@ -8,7 +8,7 @@ const now = () => new Date().toISOString();
 export const users = sqliteTable('users', {
     id: text('id').primaryKey().$defaultFn(() => randomUUID()),
     email: text('email').notNull().unique(),
-    passwordHash: text('password-hash').notNull(),
+    passwordHash: text('password_hash').notNull(),
     createdAt: text('created_at').notNull().$defaultFn(now),
 });
 
@@ -35,7 +35,7 @@ export const graphs = sqliteTable('graphs', {
 export const sessions = sqliteTable('sessions', {
     // The SHA-256 fingerprint of the token that lives in the browser's cookie. The token itself is never stored,
     // so someone who steals the database cannot sign in as anybody.
-    tokenHash: text('token-hash').primaryKey(), 
+    tokenHash: text('token_hash').primaryKey(), 
     userId: text('user_id')
         .notNull()
         .references(() => users.id, { onDelete: 'cascade' }), 

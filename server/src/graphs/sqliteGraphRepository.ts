@@ -18,7 +18,6 @@ function toStoredGraph(row: GraphRow): StoredGraph {
 }
 
 
-// The clock is a parameter so tests can control time instead of waiting for it.
 export function createGraphRepository(db: Db): GraphRepository {
     async function get(ownerId: string, id: string) {
         const row = db

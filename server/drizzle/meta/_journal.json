@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1794133496546,
-      "tag": "0000_init",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1794215832351,
-      "tag": "0001_graph_key_per_owner",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1794385780063,
-      "tag": "0002_sessions",
+      "when": 1795525051841,
+      "tag": "0000_many_iron_patriot",
       "breakpoints": true
     }
   ]

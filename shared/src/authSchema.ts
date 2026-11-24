@@ -11,7 +11,6 @@ export const AUTH_LIMITS = {
 const emailSchema = z
     .string()
     .trim()
-    .trim()
     .toLowerCase()
     .pipe(z.email('Enter a valid email address.').max(AUTH_LIMITS.maxEmailLength, 'Email address is too long.'));
 

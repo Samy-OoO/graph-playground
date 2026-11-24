@@ -18,7 +18,6 @@ const { db } = createDb(config.dbPath);
 console.log(`Database ready at ${config.dbPath}`);
 
 // This is the wiring: build each piece and hand it to the next one.
-// Until real login exists, every req is stated as coming from one placeholder user.
 const graphs = createGraphRepository(db);
 const sessions = createSessionStore(db, { lifetimeMs: config.sessionLifetimeDays * DAY_MS });
 const auth = createAuthService({ users: createUserRepository(db), sessions, hasher: argon2Hasher });
