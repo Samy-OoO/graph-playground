@@ -33,6 +33,7 @@ createApp({
   auth, 
   authenticate: requireUser(auth), 
   secureCookies: config.isProduction, 
+  // 10 failed attempts per IP address per 15 minutes.
   authRateLimit: { windowMs: 15 * 60 * 1000, limit: 10 }, 
 }).listen(config.port, () => {
   console.log(`Server listening on http://localhost:${config.port}`);

@@ -27,7 +27,7 @@ export function storageNameFor(userId: string | null): string | undefined {
 }
 
 export async function createStorage(dbName?: string, options: StorageOptions = {}): Promise<AppStorage> {
-    const remote = options.useServer ? new ApiRepository() : null;
+    const remote = options.useServer ? new ApiRepository('/api', undefined, options.onUnauthorized) : null;
 
     try {
         const probe = await openGraphDB(dbName);

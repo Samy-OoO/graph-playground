@@ -4,6 +4,7 @@ import { ConflictError } from './conflictError';
 import { createDocument } from './convert';
 import { createFakeGraphServer } from './fakeGraphServer';
 import { describeRepositoryContract } from './repositoryContract';
+import { UnauthorizedError } from './unauthorizedError';
 
 // The same tests every other repository passes. Each test gets a brand-new fake server, so it starts empty.
 describeRepositoryContract('ApiRepository', () => new ApiRepository('/api', createFakeGraphServer().fetchFn));
@@ -177,6 +178,44 @@ describe('ApiRepository specifics', () => {
 
             const list = await repository.list();
             expect(list.map((s) => s.id)).toEqual(['good']);
+        });
+    });
+
+        describe('when the session has ended', () => {
+        it('tells the app, and throws an error that says what to do', async () => {
+            const server = createFakeGraphServer();
+            const onUnauthorized = vi.fn();
+            const repository = new ApiRepository('/api', server.fetchFn, onUnauthorized);
+
+            server.answerNextWith(401, { error: 'You need to sign in.' });
+            const attempt = repository.save(makeDoc('g1', 'x'));
+
+            await expect(attempt).rejects.toBeInstanceOf(UnauthorizedError);
+            await expect(attempt).rejects.toThrow(/Sign in again/);
+            expect(onUnauthorized).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([
+            ['list', (repository: ApiRepository) => repository.list()],
+            ['get', (repository: ApiRepository) => repository.get('g1')],
+            ['delete', (repository: ApiRepository) => repository.delete('g1')],
+        ])('also notices it when calling %s', async (_name, call) => {
+            const server = createFakeGraphServer();
+            const onUnauthorized = vi.fn();
+            const repository = new ApiRepository('/api', server.fetchFn, onUnauthorized);
+
+            server.answerNextWith(401, { error: 'You need to sign in.' });
+
+            await expect(call(repository)).rejects.toBeInstanceOf(UnauthorizedError);
+            expect(onUnauthorized).toHaveBeenCalledTimes(1);
+        });
+
+        it('still throws when nobody is listening for it', async () => {
+            const server = createFakeGraphServer();
+            const repository = new ApiRepository('/api', server.fetchFn);
+
+            server.answerNextWith(401);
+            await expect(repository.list()).rejects.toBeInstanceOf(UnauthorizedError);
         });
     });
 

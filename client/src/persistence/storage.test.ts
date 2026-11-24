@@ -4,8 +4,10 @@ import { IndexedDbDraftStore } from './indexedDbDraftStore';
 import { IndexedDbRepository } from './indexedDbRepository';
 import { MemoryDraftStore } from './memoryDraftStore';
 import { MemoryRepository } from './memoryRepository';
-import { createStorage, getAppStorage } from './storage';
+import { createStorage, getAppStorage, storageNameFor } from './storage';
 import { ApiRepository } from './apiRepository';
+import { createFakeGraphServer } from './fakeGraphServer';
+import { UnauthorizedError } from './unauthorizedError';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -57,6 +59,28 @@ describe('createStorage', () => {
 
     const storage = await createStorage('storage-test-denied');
     expect(storage.persistent).toBe(false);
+  });
+});
+
+describe('storageNameFor', () => {
+  it('gives guests the default database and every user a database of their own', () => {
+    expect(storageNameFor(null)).toBeUndefined();
+    expect(storageNameFor('user-a')).toBe('graph-playground-user-user-a');
+    expect(storageNameFor('user-a')).not.toBe(storageNameFor('user-b'));
+  });
+});
+
+describe('createStorage for a signed-in user', () => {
+  it('passes the "session ended" callback on to the server repository', async () => {
+    const server = createFakeGraphServer();
+    vi.stubGlobal('fetch', server.fetchFn);
+    const onUnauthorized = vi.fn();
+    const storage = await createStorage('storage-test-unauthorized', { useServer: true, onUnauthorized });
+
+    server.answerNextWith(401, { error: 'You need to sign in.' });
+
+    await expect(storage.repository.list()).rejects.toBeInstanceOf(UnauthorizedError);
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
   });
 });
 

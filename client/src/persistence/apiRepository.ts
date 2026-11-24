@@ -48,7 +48,7 @@ export class ApiRepository implements GraphRepository {
     private async request(path: string, init?: RequestInit): Promise<Response> {
         let response: Response;
         try {
-            return await this.fetchFn(`${this.baseUrl}${path}`, init);
+            response = await this.fetchFn(`${this.baseUrl}${path}`, init);
         } catch (error) {
             // fetch only throws when no answer came back at all: offline, server down, and so on.
             throw new Error('Could not reach the server. Check your connection and try again.', { cause: error });

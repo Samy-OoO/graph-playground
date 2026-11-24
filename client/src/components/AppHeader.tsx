@@ -4,6 +4,7 @@ import { BrandMark } from './BrandMark';
 import styles from './AppHeader.module.css';
 import { DocumentControls } from './header/DocumentControls';
 import { LibraryMenu } from './header/LibraryMenu';
+import { AccountMenu } from './header/AccountMenu';
 
 interface AppHeaderProps {
   session: DocumentSession;
@@ -27,6 +28,7 @@ export function AppHeader({ session, guard }: AppHeaderProps) {
 
         <DocumentControls session={session} guard={guard} />
         <LibraryMenu session={session} guard={guard} />
+        <AccountMenu guard={guard} />
       </div>
     </header>
   );
