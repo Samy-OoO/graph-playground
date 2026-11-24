@@ -1,0 +1,34 @@
+{
+  "name": "@graph-playground/server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@graph-playground/shared": "*",
+    "argon2": "^0.45.2",
+    "better-sqlite3": "^13.0.3",
+    "cookie-parser": "^1.4.7",
+    "drizzle-orm": "^0.45.4",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.7.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.19.2",
+    "@types/supertest": "^6.0.0",
+    "drizzle-kit": "^0.31.11",
+    "supertest": "^7.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
+  }
+}
